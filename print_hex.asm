@@ -1,11 +1,10 @@
-;
-; A routine that prints an hex number.
-;
+; Look at git history to see previous attempts. Especially writing the
+; conversion results to registers then to memory (HEX_OUT) raises endianness
+; issues. In little-endian architectures, register and memory byte order are
+; opposit. Copying between register and memory reverses bytes.
 
 ; prints the value of DX as hex.
 print_hex:
-    ; TODO: manipulate chars at HEX_OUT to reflect DX
-
     ; pusha/popa considered expensive, but easier than using the stack for now
     ; https://stackoverflow.com/questions/70530930/usage-of-pusha-popa-in-function-prologue-epilogue
     pusha
@@ -15,42 +14,27 @@ print_hex:
     ; as a pointer! Thx
     ; https://github.com/tobiasorama/exercises-and-files-from-writing-a-simple-OS-from-scratch/blob/main/print_hex.asm
     mov di, HEX_OUT
-    add di, 2                   ; Start writing from then end
+    add di, 2
 
     ; Another trick is to use an ALPHABET instead of a function to convert a
     ; nibble. Thx
     ; https://github.com/t-hanf/WASOS/blob/main/Chapter_3/utils.asm
+print_hex_loop:
+    cmp di, HEX_OUT+5
+    jg print_hex_end
+
+    ; Only BX can be used as an index register! https://stackoverflow.com/a/1797782
     mov bx, dx
     and bx, 0xf000
     shr bx, 12
-    add bx, ALPHABET
-    mov al, [bx]
-    mov [di], al
+    mov cx, [ALPHABET+bx]
+    mov [di], cl
+
     inc di
+    shl dx, 4                   ; Ok to modify dx as all regs are pushed already.
+    jmp print_hex_loop
 
-    ; TODO can we avoid inlining (copy-paste)?
-    mov bx, dx
-    and bx, 0x0f00
-    shr bx, 8
-    add bx, ALPHABET
-    mov al, [bx]
-    mov [di], al
-    inc di
-
-    mov bx, dx
-    and bx, 0x00f0
-    shr bx, 4
-    add bx, ALPHABET
-    mov al, [bx]
-    mov [di], al
-    inc di
-
-    mov bx, dx
-    and bx, 0x000f
-    add bx, ALPHABET
-    mov al, [bx]
-    mov [di], al
-
+print_hex_end:
     mov bx, HEX_OUT    ; print the string pointed to
     call print_string  ; by BX
 
