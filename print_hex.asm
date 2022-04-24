@@ -1,5 +1,5 @@
 ;
-; A routine that  prints an hex number.
+; A routine that prints an hex number.
 ;
 
 ; prints the value of DX as hex.
@@ -14,35 +14,42 @@ print_hex:
     ; HEX_OUT. The trick is to store HEX_OUT into a register then use that reg
     ; as a pointer! Thx
     ; https://github.com/tobiasorama/exercises-and-files-from-writing-a-simple-OS-from-scratch/blob/main/print_hex.asm
-    mov bx, HEX_OUT
-    add bx, 2
+    mov di, HEX_OUT
+    add di, 2                   ; Start writing from then end
 
-    ; Best to work with words, not bytes!
-    mov ax, dx
-    and ax, 0xf000
-    shr ax, 12
-    call convert_nibble
-    mov [bx], al
-    inc bx
+    ; Another trick is to use an ALPHABET instead of a function to convert a
+    ; nibble. Thx
+    ; https://github.com/t-hanf/WASOS/blob/main/Chapter_3/utils.asm
+    mov bx, dx
+    and bx, 0xf000
+    shr bx, 12
+    add bx, ALPHABET
+    mov al, [bx]
+    mov [di], al
+    inc di
 
-    mov ax, dx
-    and ax, 0x0f00
-    shr ax, 8
-    call convert_nibble
-    mov [bx], al
-    inc bx
+    ; TODO can we avoid inlining (copy-paste)?
+    mov bx, dx
+    and bx, 0x0f00
+    shr bx, 8
+    add bx, ALPHABET
+    mov al, [bx]
+    mov [di], al
+    inc di
 
-    mov ax, dx
-    and ax, 0x00f0
-    shr ax, 4
-    call convert_nibble
-    mov [bx], al
-    inc bx
+    mov bx, dx
+    and bx, 0x00f0
+    shr bx, 4
+    add bx, ALPHABET
+    mov al, [bx]
+    mov [di], al
+    inc di
 
-    mov ax, dx
-    and ax, 0x000f
-    call convert_nibble
-    mov [bx], al
+    mov bx, dx
+    and bx, 0x000f
+    add bx, ALPHABET
+    mov al, [bx]
+    mov [di], al
 
     mov bx, HEX_OUT    ; print the string pointed to
     call print_string  ; by BX
@@ -51,20 +58,9 @@ print_hex:
     ret
 
 
-; Convert lower nibble in AL to ascii code
-convert_nibble:
-    and byte al, 0x0f           ; Work on lower nibble only.
-    cmp byte al, 0xa
-    jl digit
-letter:
-    add byte al, 'a' - 10       ; We want: 0xa <-> index 0 <-> 'a'.
-    ret
-digit:
-    add byte al, '0'
-    ret
-
-
-    ; global  variables
+; global  variables
 HEX_OUT: db '0x0000', 0
+
+ALPHABET: db '0123456789abcdef'
 
 %include "print_string.asm"
