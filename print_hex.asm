@@ -6,12 +6,14 @@
 print_hex:
     ; TODO: manipulate chars at HEX_OUT to reflect DX
 
-    ; pusha popa considered expensive, but easier for now
+    ; pusha/popa considered expensive, but easier than using the stack for now
     ; https://stackoverflow.com/questions/70530930/usage-of-pusha-popa-in-function-prologue-epilogue
     pusha
 
-    ; TODO how do we pass and manipulate HEX_OUT ?
-    call set_byte
+    call convert_hex
+    mov [HEX_OUT+2], ax         ; Write result of DH's conversion. Byte-order
+                                ; will be reversed in memory (HEX_OUT)
+    mov [HEX_OUT+4], cx         ; Write result of DL's conversion.
 
     mov bx, HEX_OUT    ; print the string pointed to
     call print_string  ; by BX
@@ -19,28 +21,45 @@ print_hex:
     popa
     ret
 
-set_byte:
-    ; Take dx first byte: 0x1f.
-    ; Store it into HEX_OUT byte 3, after '0x'.
-    ; NOTE NASM Requires Square Brackets For Memory References!
-    mov [HEX_OUT+2], dh
+; IN: dx
+; OUT: ax, cx
+convert_hex:
+    ; In little-endian architectures, registers and memory byte order are
+    ; opposit. Since we'll later copy from reg to mem, we'll have to produce
+    ; results in reverse-order.
+    mov byte al, dl             ; Take first byte from source DX
+    call convert_nibble         ; Convert lower nibble, result in AL
+    mov byte ah, al             ; Save result for first nibble
 
-    ; convert high byte half to ascii code
-    ; 0x0 hex → 0x30 ascii, 0xa → 0x61
-    shr byte [HEX_OUT+2], 4
-    add byte [HEX_OUT+2], '0'
+    mov byte al, dl             ; Take first byte from source DX
+    shr byte al, 4              ; Consider higher nibble
+    call convert_nibble         ; Convert higher nibble, result in AL
 
-    ; Take dx first byte: 0x1f.
-    ; Store it into HEX_OUT byte 4, after '0xX'.
-    mov [HEX_OUT+3], dh
+    mov cx, ax                  ; Save result to CX
 
-    ; convert low byte half to ascii code
-    and byte [HEX_OUT+3], 0x0f
-    add byte [HEX_OUT+3], 'a' - 10
+    ; Inlining (copy-paste) instead of using a loop is probably ok.
+    mov byte al, dh             ; Take other byte from source DX
+    call convert_nibble         ; Convert lower nibble, result in AL
+    mov byte ah, al             ; Save result for first nibble
 
-    ; TODO if b < 0xa then add '0' else add 'a'-10
+    mov byte al, dh             ; Take other byte from source DX
+    shr byte al, 4              ; Consider higher nibble
+    call convert_nibble         ; Convert higher nibble, result in AL
 
     ret
+
+; Convert lower nibble in AL to ascii code
+convert_nibble:
+    and byte al, 0x0f           ; Work on lower nibble only.
+    cmp byte al, 0xa
+    jl digit
+letter:
+    add byte al, 'a' - 10       ; We want: 0xa <-> index 0 <-> 'a'.
+    ret
+digit:
+    add byte al, '0'
+    ret
+
 
     ; global  variables
 HEX_OUT: db '0x0000', 0
