@@ -10,10 +10,39 @@ print_hex:
     ; https://stackoverflow.com/questions/70530930/usage-of-pusha-popa-in-function-prologue-epilogue
     pusha
 
-    call convert_hex
-    mov [HEX_OUT+2], ax         ; Write result of DH's conversion. Byte-order
-                                ; will be reversed in memory (HEX_OUT)
-    mov [HEX_OUT+4], cx         ; Write result of DL's conversion.
+    ; It's not syntactically obvious how to write bytes directly to mem
+    ; HEX_OUT. The trick is to store HEX_OUT into a register then use that reg
+    ; as a pointer! Thx
+    ; https://github.com/tobiasorama/exercises-and-files-from-writing-a-simple-OS-from-scratch/blob/main/print_hex.asm
+    mov bx, HEX_OUT
+    add bx, 2
+
+    ; Best to work with words, not bytes!
+    mov ax, dx
+    and ax, 0xf000
+    shr ax, 12
+    call convert_nibble
+    mov [bx], al
+    inc bx
+
+    mov ax, dx
+    and ax, 0x0f00
+    shr ax, 8
+    call convert_nibble
+    mov [bx], al
+    inc bx
+
+    mov ax, dx
+    and ax, 0x00f0
+    shr ax, 4
+    call convert_nibble
+    mov [bx], al
+    inc bx
+
+    mov ax, dx
+    and ax, 0x000f
+    call convert_nibble
+    mov [bx], al
 
     mov bx, HEX_OUT    ; print the string pointed to
     call print_string  ; by BX
@@ -21,32 +50,6 @@ print_hex:
     popa
     ret
 
-; IN: dx
-; OUT: ax, cx
-convert_hex:
-    ; In little-endian architectures, registers and memory byte order are
-    ; opposit. Since we'll later copy from reg to mem, we'll have to produce
-    ; results in reverse-order.
-    mov byte al, dl             ; Take first byte from source DX
-    call convert_nibble         ; Convert lower nibble, result in AL
-    mov byte ah, al             ; Save result for first nibble
-
-    mov byte al, dl             ; Take first byte from source DX
-    shr byte al, 4              ; Consider higher nibble
-    call convert_nibble         ; Convert higher nibble, result in AL
-
-    mov cx, ax                  ; Save result to CX
-
-    ; Inlining (copy-paste) instead of using a loop is probably ok.
-    mov byte al, dh             ; Take other byte from source DX
-    call convert_nibble         ; Convert lower nibble, result in AL
-    mov byte ah, al             ; Save result for first nibble
-
-    mov byte al, dh             ; Take other byte from source DX
-    shr byte al, 4              ; Consider higher nibble
-    call convert_nibble         ; Convert higher nibble, result in AL
-
-    ret
 
 ; Convert lower nibble in AL to ascii code
 convert_nibble:
