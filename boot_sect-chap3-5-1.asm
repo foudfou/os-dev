@@ -10,9 +10,10 @@
 
 ; ORDER OF INLCUDES AND CODE IS IMPORTANT!
 %include "print_hex.asm"
+%include "print_string.asm"
 
     ; Padding  and  magic  number.
     times  510-($-$$) db 0
     dw 0xaa55
 
-;  x /40hx 0x7c00
+; In bochs, inspect/debug mem with: x /40hx 0x7c00

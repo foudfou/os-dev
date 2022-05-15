@@ -46,5 +46,3 @@ print_hex_end:
 HEX_OUT: db '0x0000', 0
 
 ALPHABET: db '0123456789abcdef'
-
-%include "print_string.asm"
