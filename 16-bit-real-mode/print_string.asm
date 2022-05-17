@@ -4,17 +4,17 @@ print_string:
     ; We could inc bx directly
     mov si, 0
 
-looptop:
+print_string_loop:
     mov al, byte [bx+si]
     cmp al, 0
-    je done
+    je print_string_done
 
     mov ah, 0x0e ; int =10/ ah =0x0e -> BIOS tele-type output
     int 0x10 ; print the character in al
 
     inc si
-    jmp looptop
+    jmp print_string_loop
 
-done:
+print_string_done:
     popa ; Restore original register values
     ret
