@@ -1,0 +1,4 @@
+void
+my_function () {
+  char* my_string = "Hello";    /* 0x48, 0x65, 0x6c, 0x6c, and 0x6f */
+}

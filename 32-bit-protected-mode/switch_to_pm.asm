@@ -25,6 +25,7 @@ init_pm:
     mov es, ax
     mov fs, ax
     mov gs, ax
+; FIXME check why is 0x90000 the top of free space ?
     mov ebp, 0x90000        ; Update our stack position so it is right
     mov esp, ebp            ; at the top of the free space.
     call BEGIN_PM           ; Finally, call some well-known label
