@@ -19,8 +19,8 @@
     jmp $
 
 ; Include our useful, hard-earned routines
-%include "../16-bit-real-mode/print_string.asm"
-%include "../16-bit-real-mode/disk_load.asm"
+%include "print_string.asm"
+%include "disk_load.asm"
 %include "gdt.asm"
 %include "print_string_pm.asm"
 %include "switch_to_pm.asm"
