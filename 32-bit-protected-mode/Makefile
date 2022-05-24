@@ -9,11 +9,16 @@ chap4-5:
 # ndisasm -b 32 basic.bin | head -10
 # rm basic.bin basic.o
 
-kernel.bin:
-	gcc -ffreestanding -c kernel.c -o kernel.o
-# -Ttext locates text section at 0x1000, so our code knows to offset local
+kernel_entry.o:
+	nasm kernel_entry.asm -f elf -o kernel_entry.o
+
+kernel.bin: kernel_entry.o
+# `-fno-pie` to avoid: undefined reference to `_GLOBAL_OFFSET_TABLE_'.
+# We also need the chain to be consistent: 32-bit
+	gcc -fno-pie -m32 -ffreestanding -c kernel.c -o kernel.o
+# `-Ttext` locates text section at 0x1000, so our code knows to offset local
 # address references from this origin, exactly liek `org 0x7c00`.
-	ld -o kernel.bin -Ttext 0x1000 kernel.o --oformat binary
+	ld -m elf_i386 -o kernel.bin -Ttext 0x1000 kernel_entry.o kernel.o --oformat binary
 
 objdump-kernel:
 	objdump -b binary --headers -f kernel.bin
@@ -33,4 +38,4 @@ run-kernel-qemu:
 	qemu-system-x86_64 -fda os-image
 
 clean-kernel:
-	rm kernel.o kernel.bin boot_sect-kernel.bin os-image
+	rm kernel_entry.o kernel.o kernel.bin boot_sect-kernel.bin os-image
