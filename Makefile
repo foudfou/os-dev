@@ -41,7 +41,7 @@ kernel.bin: kernel/kernel_entry.o ${OBJ}
 %.o : %.c ${HEADERS}
 # `-fno-pie` to avoid: undefined reference to `_GLOBAL_OFFSET_TABLE_'.
 # We also need the chain to be consistent: 32-bit
-	gcc -fno-pie -m${ARCH} -ffreestanding -c $< -o $@
+	gcc -fno-pie -m${ARCH} -ffreestanding -I. -c $< -o $@
 
 # Assemble the kernel_entry.
 %.o : %.asm
