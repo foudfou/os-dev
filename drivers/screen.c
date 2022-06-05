@@ -12,10 +12,10 @@ static int get_cursor() {
   // reg 15: which is the low byte of the cursor's offset
   // Once the internal register has been selected, we may read or
   // write a byte on the data register.
-  port_byte_out(REG_SCREEN_CTRL, 14);
-  int offset = port_byte_in(REG_SCREEN_DATA) << 8;
-  port_byte_out(REG_SCREEN_CTRL, 15);
-  offset += port_byte_in(REG_SCREEN_DATA);
+  outb(REG_SCREEN_CTRL, 14);
+  int offset = inb(REG_SCREEN_DATA) << 8;
+  outb(REG_SCREEN_CTRL, 15);
+  offset += inb(REG_SCREEN_DATA);
   // Since the cursor offset reported by the VGA hardware is the
   // number of characters, we multiply by two to convert it to
   // a character cell offset.
@@ -26,10 +26,10 @@ static void set_cursor(int offset) {
   offset /= 2; // Convert from cell offset to char offset.
                // This is similar to get_cursor, only now we write
                // bytes to those internal device registers.
-  port_byte_out(REG_SCREEN_CTRL, 14);
-  port_byte_out(REG_SCREEN_DATA, (offset & 0xff00) >> 8);
-  port_byte_out(REG_SCREEN_CTRL, 15);
-  port_byte_out(REG_SCREEN_DATA, offset & 0xff);
+  outb(REG_SCREEN_CTRL, 14);
+  outb(REG_SCREEN_DATA, (offset & 0xff00) >> 8);
+  outb(REG_SCREEN_CTRL, 15);
+  outb(REG_SCREEN_DATA, offset & 0xff);
 }
 
 /* Advance the text cursor, scrolling the video buffer if necessary. */
