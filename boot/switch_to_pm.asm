@@ -7,6 +7,7 @@ switch_to_pm:
 
     lgdt [gdt_descriptor] ; Load our global descriptor table, which defines
                           ; the protected mode segments (e.g. for code and data)
+
     mov eax, cr0          ; To make the switch to protected mode, we set
     or eax, 0x1           ; the first bit of CR0, a control register
     mov cr0, eax

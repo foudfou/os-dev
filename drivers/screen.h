@@ -13,9 +13,10 @@
 #define REG_SCREEN_DATA 0x3D5
 
 void clear_screen();
-void print(const char* message);
 void print_char(const char character, int col, int row, char attribute_byte);
 void print_at(const char* message, int col, int row);
+void print_hex(unsigned int number);
+void print(const char* message);
 
 
 #endif /* SCREEN_H */
