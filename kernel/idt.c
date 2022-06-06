@@ -2,6 +2,7 @@
 #include "drivers/screen.h"
 #include "kernel/gdt.h"
 #include "kernel/idt.h"
+#include "kernel/pic.h"
 
 extern uint32_t isr_stub_table[];
 
@@ -26,23 +27,20 @@ isr_fn isr_table[IDT_SIZE_MAX] = {NULL};
 static void
 idt_set_descriptor(int idx, uint32_t base, uint16_t selector, uint8_t flags)
 {
-  idt[idx].base_lo   = (uint16_t) (base & 0xffff);
-  idt[idx].selector  = (uint16_t) selector;
-  idt[idx].zero      = (uint8_t) 0;
-  idt[idx].type_attr = (uint8_t) flags;
-  idt[idx].base_hi   = (uint16_t) ((base >> 16) & 0xFFFF);
+    idt[idx].base_lo   = (uint16_t) (base & 0xffff);
+    idt[idx].selector  = (uint16_t) selector;
+    idt[idx].zero      = (uint8_t) 0;
+    idt[idx].type_attr = (uint8_t) flags;
+    idt[idx].base_hi   = (uint16_t) ((base >> 16) & 0xFFFF);
 }
 
 /** Exposed to other parts for them to register ISRs. */
 inline void isr_register(uint8_t int_no, isr_fn handler) {
-  if (isr_table[int_no] != NULL) {
-    // FIXME we need printf
-    print("isr: handler already registered for interrupt # ");
-    print_hex(int_no);
-    print("\n");
-    return;
-  }
-  isr_table[int_no] = handler;
+    if (isr_table[int_no] != NULL) {
+        printi("isr: handler already registered for interrupt # ", int_no);
+        return;
+    }
+    isr_table[int_no] = handler;
 }
 
 /**
@@ -53,15 +51,20 @@ inline void isr_register(uint8_t int_no, isr_fn handler) {
  * this pointer if necesary.
  */
 void isr_handler(struct interrupt_state *state) {
-  uint8_t int_no = state->int_no;
+    uint8_t int_no = state->int_no;
 
-  print("caught interrupt # ");
-  print_hex(int_no);
-  print("\n");
+    printi("caught interrupt # ", int_no);
 
-  // Call actual ISR if registered.
-  if (isr_table[int_no] != NULL)
-    isr_table[int_no](state);
+    if (isr_table[int_no] == NULL) {
+        printi("missing handler for ISR interrupt # ", int_no);
+        // FIXME panic here
+    } else
+        isr_table[int_no](state);
+
+    if (int_no < IDT_IRQ_SIZE_MAX) { // interrupt
+        uint8_t irq_no = state->int_no - IDT_IRQ_BASE;
+        pic_send_eoi(irq_no); // ACK
+    }
 }
 
 /**
@@ -69,12 +72,14 @@ void isr_handler(struct interrupt_state *state) {
  * entries of IDT, setting the IDTR register to point to our IDT address,
  * and then (through assembly `lidt` instruction) load our IDT.
  */
-void
-idt_init()
-{
+void idt_init() {
     // Unused entries and field all default to 0, as per previous initialization.
     for (uint8_t vector = 0; vector < IDT_IRQ_BASE; vector++) {
-      idt_set_descriptor(vector, isr_stub_table[vector], GDT_OFFSET_KERNEL_CODE, IDT_DESCRIPTOR_EXCEPTION);
+        idt_set_descriptor(vector, isr_stub_table[vector], GDT_OFFSET_KERNEL_CODE, IDT_DESCRIPTOR_EXCEPTION);
+    }
+
+    for (uint8_t vector = IDT_IRQ_BASE; vector < IDT_IRQ_SIZE_MAX; vector++) {
+        idt_set_descriptor(vector, isr_stub_table[vector], GDT_OFFSET_KERNEL_CODE, IDT_DESCRIPTOR_EXTERNAL);
     }
 
     // Setup the IDTR register value.

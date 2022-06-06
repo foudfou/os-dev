@@ -12,8 +12,9 @@
  *   - >= 32 are mapped as custom device IRQs, so ISR 32 means IRQ 0, etc.
  */
 #define IDT_IRQ_BASE     32
-#define IDT_IRQ_TIMER    (IDT_IRQ_BASE_NO + 0)
-#define IDT_IRQ_KEYBOARD (IDT_IRQ_BASE_NO + 1)
+#define IDT_IRQ_TIMER    (IDT_IRQ_BASE + 0)
+#define IDT_IRQ_KEYBOARD (IDT_IRQ_BASE + 1)
+#define IDT_IRQ_SIZE_MAX 48
 
 #define IDT_DESCRIPTOR_X16_INTERRUPT  0x06
 #define IDT_DESCRIPTOR_X16_TRAP       0x07
