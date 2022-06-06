@@ -3,5 +3,7 @@
 [extern main] ; Declate that we will be referencing the external symbol 'main',
               ; so the linker can substitute the final address
 
-    call main ; invoke main() in our C kernel
+global _start ; As a convention, we'll use '_start' to label
+_start:       ; the entry point and use that in the linker script.
+    call main ; Invoke main() in our C kernel
     jmp $     ; Hang forever when we return from the kernel

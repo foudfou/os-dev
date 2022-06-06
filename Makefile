@@ -1,8 +1,17 @@
 CC      = gcc
 AS      = nasm
 LD      = ld
-CFLAGS  = -fno-pie -m32 -nostdlib -ffreestanding
+CFLAGS  = -std=c17 -fno-pie -m32 -nostdlib -ffreestanding
 LDFLAGS = -m elf_i386
+LDS     = kernel.lds
+
+# CC      = clang
+# AS      = nasm
+# LD      = clang
+# CFLAGS  = -std=c17 -fno-pie -nostdlib -ffreestanding -mno-red-zone -fno-stack-protector -W -Wall
+# LDFLAGS = -nostdlib -mcmodel=kernel -nopie
+# LDS     = kernel.lds
+
 
 # Automatically generate lists of sources using wildcards.
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
@@ -23,7 +32,7 @@ run: all
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
 os.img: boot/boot_sect.bin kernel.bin
-	cat $^ | dd of=os.img bs=512 conv=sync
+	cat $^ /dev/zero | dd of=$@ bs=1k count=1440
 
 # This builds the binary of our kernel from two object files:
 # 	- the kernel_entry,which jumps to main() in our kernel
@@ -31,7 +40,7 @@ os.img: boot/boot_sect.bin kernel.bin
 kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJ}
 # `-Ttext` locates text section at 0x1000, so our code knows to offset local
 # address references from this origin, exactly liek `org 0x7c00`.
-	$(LD) $(LDFLAGS) -o $@ -Ttext 0x1000 $^ --oformat binary
+	$(LD) $(LDFLAGS) -o $@ -T$(LDS) $^ --oformat binary
 
 # Generic rule for compiling C code to an object file
 # For simplicity , we C files depend on all header files .
@@ -42,10 +51,10 @@ kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJ}
 
 # Assemble the kernel_entry.
 %.o : %.asm
-	nasm $< -f elf -o $@
+	$(AS) $< -f elf -o $@
 
 %.bin : %.asm
-	nasm $< -f bin -I $(PWD)/boot -o $@
+	$(AS) $< -f bin -I ./boot -o $@
 
 .PHONY: clean
 clean:

@@ -1,4 +1,4 @@
-    ; load DH  sectors  to ES:BX from  drive  DL
+; load DH  sectors  to ES:BX from  drive  DL
 disk_load:
     push dx          ; Store DX on stack so later we can recall
                      ; how many sectors were request to be read,
