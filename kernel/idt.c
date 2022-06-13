@@ -53,8 +53,6 @@ inline void isr_register(uint8_t int_no, isr_fn handler) {
 void isr_handler(struct interrupt_state *state) {
     uint8_t int_no = state->int_no;
 
-    printi("caught interrupt # ", int_no);
-
     if (isr_table[int_no] == NULL) {
         printi("missing handler for ISR interrupt # ", int_no);
         // FIXME panic here

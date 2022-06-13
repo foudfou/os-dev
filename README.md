@@ -14,7 +14,7 @@ We mostly follow the excellent
 additions or modifications from other sources.
 
 - [6.3 Handling_Interrupts](doc/6.3.Handling_Interrupts.md)
-- 6.4 Keyboard Driver
+- [6.4 Keyboard Driver](doc/6.4.Keyboard_Driver.md)
 - 6.5 Hard-disk Driver
 - 6.6 File System
 - 7 Implementing Processes
