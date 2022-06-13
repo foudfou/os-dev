@@ -1,4 +1,4 @@
-#include "drivers/keyboard.h"
+#include "drivers/kbd.h"
 #include "drivers/screen.h"
 #include "kernel/idt.h"
 #include "kernel/pic.h"
@@ -11,7 +11,7 @@ void main () {
 
     pic_init();
 
-    keyboard_init();    // PS/2 keyboard support
+    keyboard_init();   // PS/2 keyboard support
 
     __asm__("sti");    // Enable interrupts
 }

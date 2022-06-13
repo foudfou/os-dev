@@ -5,7 +5,7 @@
 #include "kernel/low_level.h"
 #include "kernel/pic.h"
 
-#include "drivers/keyboard.h"
+#include "drivers/kbd.h"
 
 #define IO_PORT_KBD_DATA 0x60
 #define IO_PORT_KBD_CTL  0x64

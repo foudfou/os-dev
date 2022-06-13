@@ -1,4 +1,4 @@
-#include "drivers/keyboard.h"
+#include "drivers/kbd.h"
 
 /** Original xt scan code set */
 const int scanmap_set1[KBD_BREAKCODE_LIMIT] = {
