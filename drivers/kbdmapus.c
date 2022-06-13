@@ -1,7 +1,7 @@
 #include "drivers/kbd.h"
 
 /** Original xt scan code set */
-const int scanmap_set1[KBD_BREAKCODE_LIMIT] = {
+const int kbd_scanmap_set1[KBD_BREAKCODE_LIMIT] = {
     [0x00] = KEY_NULL,
     //
     [0x01] = KEY_ESCAPE,
@@ -104,7 +104,7 @@ const int scanmap_set1[KBD_BREAKCODE_LIMIT] = {
 };
 
 /** Ascii representation of key codes */
-const char *scanmap_regular[KBD_BREAKCODE_LIMIT] = {
+const char *kbd_scanmap_ascii_regular[KBD_BREAKCODE_LIMIT] = {
     [KEY_ESCAPE]       = "\e",
     [KEY_1]            = "1",
     [KEY_2]            = "2",
@@ -200,7 +200,7 @@ const char *scanmap_regular[KBD_BREAKCODE_LIMIT] = {
     [KEY_F12]          = "\e[24~",
 };
 
-const char *scanmap_shift[KBD_BREAKCODE_LIMIT] = {
+const char *kbd_scanmap_ascii_shift[KBD_BREAKCODE_LIMIT] = {
     [KEY_ESCAPE]       = 0,
     [KEY_1]            = "!",
     [KEY_2]            = "@",

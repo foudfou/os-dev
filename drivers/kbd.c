@@ -16,9 +16,9 @@
 
 #define BOOL_TOGGLE(a) (a) ? false : true
 
-extern const int scanmap_set1[KBD_BREAKCODE_LIMIT];
-extern const char *scanmap_regular[KBD_BREAKCODE_LIMIT];
-extern const char *scanmap_shift[KBD_BREAKCODE_LIMIT];
+extern const int   kbd_scanmap_set1[KBD_BREAKCODE_LIMIT];
+extern const char *kbd_scanmap_ascii_regular[KBD_BREAKCODE_LIMIT];
+extern const char *kbd_scanmap_ascii_shift[KBD_BREAKCODE_LIMIT];
 
 static bool shift, alt, ctrl = false;
 
@@ -38,23 +38,20 @@ static void keyboard_interrupt_handler(struct interrupt_state *state) {
      * keyboard using the keyboard status register (read 0x64).
      */
     uint8_t scancode = inb(IO_PORT_KBD_DATA);
-
     // Scancodes with extended byte (E0) generate two interrupts. Strictly
-    // speaking we should thus record the extended scancode on E0 and wait for
-    // the following interrupt. I guess nowadays there's no real need for
-    // waiting. So we pull the next scancode immediately.
+    // speaking we should thus record that we got an extended scancode when
+    // reeiving E0 and wait for the following interrupt. I guess nowadays
+    // there's no real need for waiting. So we pull the next scancode
+    // immediately.
     if (scancode == KBD_EXTENDED_SCANCODE || scancode == 0xE1) {
         scancode = inb(IO_PORT_KBD_DATA);
     }
 
-    if (KBD_IS_MAKECODE(scancode)) {
-        key = scanmap_set1[scancode];
-    } else {
-        // Interstingly bochs reads the Xorg key mapping. So `setxkbmap
-        // -option shift:both_capslock_cancel` results in both Shift keys
-        // generating capslock-release (BA). Qemu has its own key mapping.
-        key = scanmap_set1[scancode - KBD_BREAKCODE_LIMIT];
-    }
+    // Interstingly bochs reads the Xorg key mapping. So `setxkbmap
+    // -option shift:both_capslock_cancel` results in both Shift keys
+    // generating capslock-release (BA). Qemu has its own key mapping.
+    int idx = (KBD_IS_MAKECODE(scancode)) ? scancode : scancode - KBD_BREAKCODE_LIMIT;
+    key = kbd_scanmap_set1[idx];
 
     switch (key) {
     case KEY_LCTRL:
@@ -74,7 +71,9 @@ static void keyboard_interrupt_handler(struct interrupt_state *state) {
 
     default:
         if (key != KEY_NULL && KBD_IS_MAKECODE(scancode)) {
-            const char *str = shift ? scanmap_shift[key] : scanmap_regular[key];
+            const char *str = shift ?
+                kbd_scanmap_ascii_shift[key] :
+                kbd_scanmap_ascii_regular[key];
             print(str);
         }
     }
