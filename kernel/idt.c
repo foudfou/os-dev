@@ -1,8 +1,10 @@
 #include <stddef.h>
+#include "lib/debug.h"
 #include "drivers/screen.h"
 #include "kernel/gdt.h"
-#include "kernel/idt.h"
 #include "kernel/pic.h"
+
+#include "kernel/idt.h"
 
 extern uint32_t isr_stub_table[];
 
@@ -37,7 +39,7 @@ idt_set_descriptor(int idx, uint32_t base, uint16_t selector, uint8_t flags)
 /** Exposed to other parts for them to register ISRs. */
 inline void isr_register(uint8_t int_no, isr_fn handler) {
     if (isr_table[int_no] != NULL) {
-        printi("isr: handler already registered for interrupt # ", int_no);
+        cprintf("isr: handler already registered for interrupt # %d", int_no);
         return;
     }
     isr_table[int_no] = handler;
@@ -54,8 +56,7 @@ void isr_handler(struct interrupt_state *state) {
     uint8_t int_no = state->int_no;
 
     if (isr_table[int_no] == NULL) {
-        printi("missing handler for ISR interrupt # ", int_no);
-        // FIXME panic here
+        panic("missing handler for ISR interrupt # %d", int_no);
     } else
         isr_table[int_no](state);
 

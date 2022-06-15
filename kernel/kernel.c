@@ -12,9 +12,9 @@ void main () {
 
     pic_init();
 
-    timer_init();   // PS/2 keyboard support
+    timer_init();      // PIT timer support
 
-    keyboard_init();   // PS/2 keyboard support
+    kbd_init();        // PS/2 keyboard support
 
     __asm__("sti");    // Enable interrupts
 }

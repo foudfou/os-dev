@@ -1,5 +1,4 @@
 #include <stdbool.h>
-#include <string.h>
 #include "drivers/screen.h"
 #include "kernel/idt.h"
 #include "kernel/low_level.h"
@@ -26,7 +25,7 @@ static bool shift, alt, ctrl = false;
  * Keyboard interrupt handler registered for IRQ # 0.
  * Currently just prints a tick message.
  */
-static void keyboard_interrupt_handler(struct interrupt_state *state) {
+static void kbd_interrupt_handler(struct interrupt_state *state) {
     (void) state;   /** Unused. */
 
     int key = KEY_NULL;
@@ -80,8 +79,8 @@ static void keyboard_interrupt_handler(struct interrupt_state *state) {
 }
 
 /** Initialize the PS/2 keyboard device. */
-void keyboard_init() {
-    isr_register(IDT_IRQ_KEYBOARD, &keyboard_interrupt_handler);
+void kbd_init() {
+    isr_register(IDT_IRQ_KEYBOARD, &kbd_interrupt_handler);
 
     pic_enable_irq_line(PIC_INT_KEYBOARD);
 }

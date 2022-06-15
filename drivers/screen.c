@@ -1,6 +1,19 @@
-#include "drivers/screen.h"
 #include "kernel/low_level.h"
-#include "kernel/util.h"
+#include "lib/debug.h"
+#include "lib/string.h"
+
+#include "drivers/screen.h"
+
+
+/**
+ * Default to black background + light grey foreground.
+ * Foreground color can be customized with '*_color' functions.
+ */
+const enum vga_color TERMINAL_DEFAULT_COLOR_BG = VGA_COLOR_BLUE;
+const enum vga_color TERMINAL_DEFAULT_COLOR_FG = VGA_COLOR_LIGHT_GREY;
+
+static const char WHITE_ON_BLACK = vga_attr(TERMINAL_DEFAULT_COLOR_BG,
+                                            TERMINAL_DEFAULT_COLOR_FG);
 
 static int get_screen_offset(int col, int row) { return (row * MAX_COLS + col) * 2; }
 
@@ -43,9 +56,9 @@ static int handle_scrolling(int cursor_offset) {
   /* Shuffle the rows back one. */
   int i;
   for (i = 1; i < MAX_ROWS; i++) {
-    memory_copy((const char*)(VIDEO_ADDRESS + get_screen_offset(0, i)),
-                (char*)(VIDEO_ADDRESS + get_screen_offset(0, i - 1)),
-                MAX_COLS * 2);
+    memcpy((void*)(VIDEO_ADDRESS + get_screen_offset(0, i - 1)),
+           (const void*)(VIDEO_ADDRESS + get_screen_offset(0, i)),
+           MAX_COLS * 2);
   }
 
   /* Blank the last line by setting all bytes to 0 */
@@ -63,7 +76,7 @@ static int handle_scrolling(int cursor_offset) {
 }
 
 /* Print a char on the screen at col, row, or at cursor position */
-void print_char(const char character, int col, int row, char attribute_byte) {
+static void print_char(const char character, int col, int row, char attribute_byte) {
   /* Create a byte (char) pointer to the start of video memory */
   unsigned char volatile *vidmem = (unsigned char*) VIDEO_ADDRESS;
 
@@ -105,7 +118,7 @@ void print_char(const char character, int col, int row, char attribute_byte) {
   set_cursor(offset);
 }
 
-void print_at(const char* message, int col, int row) {
+static void print_at(const char* message, int col, int row) {
   // Update the cursor if col and row not negative.
   if (col >= 0 && row >= 0) {
     set_cursor(get_screen_offset(col, row));
@@ -119,57 +132,6 @@ void print_at(const char* message, int col, int row) {
 
 void print(const char* message) { print_at(message, -1, -1); }
 
-void print_hex(unsigned int number) {
-  unsigned int mask = 0xff000000;
-  unsigned char byte;
-  unsigned char low;
-  unsigned char high;
-
-  print_char('0', -1, -1, WHITE_ON_BLACK);
-  print_char('x', -1, -1, WHITE_ON_BLACK);
-  for (int i = 0; i < 4; i++) {
-    byte = (number & mask) >> 24;
-    low = byte & 0x0f;
-    high = byte >> 4;
-    if (high <= 9) {
-      print_char(high | 0x30, -1, -1, WHITE_ON_BLACK);
-    } else {
-      print_char(high + 55, -1, -1, WHITE_ON_BLACK);
-    }
-    if (low <= 9) {
-      print_char(low | 0x30, -1, -1, WHITE_ON_BLACK);
-    } else {
-      print_char(low + 55, -1, -1, WHITE_ON_BLACK);
-    }
-    number = number << 8;
-  }
-}
-
-void print_dump(const unsigned char* pointer, unsigned int length) {
-  unsigned char byte;
-  unsigned char low;
-  unsigned char high;
-
-  for (unsigned int i = 0; i < length; i++) {
-    byte = pointer[i];
-    low = byte & 0x0f;
-    high = byte >> 4;
-    if (high <= 9) {
-      print_char(high | 0x30, -1, -1, WHITE_ON_BLACK);
-    } else {
-      print_char(high + 55, -1, -1, WHITE_ON_BLACK);
-    }
-    if (low <= 9) {
-      print_char(low | 0x30, -1, -1, WHITE_ON_BLACK);
-    } else {
-      print_char(low + 55, -1, -1, WHITE_ON_BLACK);
-    }
-
-    if (length % 2 == 0 && length != 0) {
-      print_char(' ', -1, -1, WHITE_ON_BLACK);
-    }
-  }
-}
 
 void clear_screen() {
   int row = 0;
@@ -182,4 +144,97 @@ void clear_screen() {
   }
   // Move the cursor back to the top left.
   set_cursor(get_screen_offset(0, 0));
+}
+
+
+
+void print_color(const char *data, size_t size, enum vga_color fg) {
+    for (size_t i = 0; i < size; ++i)
+        print_char(data[i], -1, -1, vga_attr(TERMINAL_DEFAULT_COLOR_BG, fg));
+}
+
+
+// ----------- Lifted from xv6 -----------------
+
+void
+consputc(int c)
+{
+    print_char(c, -1, -1, vga_attr(TERMINAL_DEFAULT_COLOR_BG, TERMINAL_DEFAULT_COLOR_FG));
+}
+
+static void
+printint(int xx, int base, int sign)
+{
+  static char digits[] = "0123456789abcdef";
+  char buf[16];
+  int i;
+  unsigned int x;
+
+  if(sign && (sign = xx < 0))
+    x = -xx;
+  else
+    x = xx;
+
+  i = 0;
+  do{
+    buf[i++] = digits[x % base];
+  }while((x /= base) != 0);
+
+  if(sign)
+    buf[i++] = '-';
+
+  while(--i >= 0)
+    consputc(buf[i]);
+}
+
+// Print to the console. only understands %d, %x, %p, %s.
+void
+cprintf(char *fmt, ...)
+{
+  int i, c;
+  unsigned int *argp;
+  char *s;
+
+  // TODO acquire lock
+
+  if (fmt == 0)
+    panic("null fmt");
+
+  // The beauty is that authors didn't use stdarg.h/va_list but just iterate on
+  // the function's arguments on the stack.
+  argp = (unsigned int*)(void*)(&fmt + 1);
+  for(i = 0; (c = fmt[i] & 0xff) != 0; i++){
+    if(c != '%'){
+      consputc(c);
+      continue;
+    }
+    c = fmt[++i] & 0xff;
+    if(c == 0)
+      break;
+    switch(c){
+    case 'd':
+      printint(*argp++, 10, 1);
+      break;
+    case 'x':
+    case 'p':
+      printint(*argp++, 16, 0);
+      break;
+    case 's':
+      if((s = (char*)*argp++) == 0)
+        s = "(null)";
+      for(; *s; s++)
+        consputc(*s);
+      break;
+    case '%':
+      consputc('%');
+      break;
+    default:
+      // Print unknown % sequence to draw attention.
+      consputc('%');
+      consputc(c);
+      break;
+    }
+  }
+
+  // TODO release lock
 }

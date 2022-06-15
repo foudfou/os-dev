@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef KBD_H
+#define KBD_H
 
 #define KBD_BREAKCODE_LIMIT   0x80
 
@@ -148,6 +148,6 @@ enum bkd_keycode {
     KEY_NUMKEYCODES,
 };
 
-void keyboard_init();
+void kbd_init();
 
-#endif /* KEYBOARD_H */
+#endif /* KBD_H */
