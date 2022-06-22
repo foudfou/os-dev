@@ -1,5 +1,6 @@
 boot_sect.bin
 *.bin
+*.map
 *.dis
 *.o
 os.img

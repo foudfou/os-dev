@@ -3,6 +3,7 @@
 #include "kernel/idt.h"
 #include "kernel/low_level.h"
 #include "kernel/pic.h"
+#include "lib/debug.h"
 
 #include "drivers/timer.h"
 
@@ -20,6 +21,9 @@ static void timer_interrupt_handler(struct interrupt_state *state) {
 
     ticks++;
     print(".");
+
+    if (ticks > 300)
+        panic("debug test");
 }
 
 

@@ -51,7 +51,7 @@ os.img: boot/boot_sect.bin kernel.bin
 kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJS}
 # `-Ttext` locates text section at 0x1000, so our code knows to offset local
 # address references from this origin, exactly liek `org 0x7c00`.
-	$(LD) $(LDFLAGS) -o $@ -T$(LDS) $^ --oformat binary
+	$(LD) $(LDFLAGS) -o $@ -T$(LDS) $^ --oformat binary -M > kernel.map
 
 # Generic rule for compiling C code to an object file
 # For simplicity , we C files depend on all header files .
@@ -69,7 +69,7 @@ kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJS}
 
 .PHONY: clean
 clean:
-	rm -fr *.bin *.dis *.o os.img
+	rm -fr *.bin *.dis *.o os.img *.map
 	rm -fr $(OBJS)
 
 

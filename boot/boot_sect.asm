@@ -5,8 +5,8 @@
     mov [BOOT_DRIVE], dl      ; BIOS stores our boot drive in DL, so it's
                               ; best to remember this for later.
 
-    mov bp, 0x9000     ; Set-up the stack.
-    mov sp, bp
+    mov sp, 0x9000     ; Set-up the stack.
+    xor bp, bp         ; Set EBP to NULL for stack tracing's use.
 
     mov bx, MSG_REAL_MODE ; Announce that we are starting
     call print_string   ; booting from 16-bit real mode

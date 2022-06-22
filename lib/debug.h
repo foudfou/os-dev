@@ -11,11 +11,13 @@
 #include "drivers/vga.h"
 #include "drivers/screen.h"
 
+void stack_trace();
 
 /** Panicking macro. */
 #define panic(fmt, args...) do {                                        \
         __asm__ __volatile__( "cli" );                                  \
         cprintf("PANIC: " fmt "\n", ##args);                            \
+        stack_trace();                                                  \
         while (1)                                                       \
             __asm__ __volatile__( "hlt" );                              \
         __builtin_unreachable();                                        \
