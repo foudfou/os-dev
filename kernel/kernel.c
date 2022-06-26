@@ -3,10 +3,13 @@
 #include "drivers/timer.h"
 #include "kernel/idt.h"
 #include "kernel/pic.h"
+#include "kernel/pmem.h"
 
-void main () {
+void main(const struct pmem_info *pmem_info) {
     clear_screen();
     print("FOUDIL WAS HERE\n(c) 2022\n");
+
+    pmem_init(pmem_info);
 
     idt_init();
 

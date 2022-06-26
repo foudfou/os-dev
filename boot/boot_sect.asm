@@ -5,11 +5,16 @@
     mov [BOOT_DRIVE], dl      ; BIOS stores our boot drive in DL, so it's
                               ; best to remember this for later.
 
-    mov sp, 0x9000     ; Set-up the stack.
-    xor bp, bp         ; Set EBP to NULL for stack tracing's use.
+    mov bp, 0x9000              ; Set-up the stack.
+    mov sp, bp
+    xor bp, bp                  ; Set EBP to NULL for stack tracing's use.
 
-    mov bx, MSG_REAL_MODE ; Announce that we are starting
-    call print_string   ; booting from 16-bit real mode
+    mov bx, MSG_REAL_MODE       ; Announce that we are starting
+    call print_string           ; booting from 16-bit real mode
+
+    mov di, PMEM_ENT
+    mov dword [di], 0           ; Initialize memory map
+    call pmem_e820              ; scan memory
 
     call load_kernel    ; Load our kernel
 
@@ -24,6 +29,7 @@
 %include "gdt.asm"
 %include "print_string_pm.asm"
 %include "switch_to_pm.asm"
+%include "pmem_e820.asm"
 
 [bits 16]
 
@@ -44,10 +50,12 @@ load_kernel:
 ; This is where we arrive after switching to and initialising protected mode.
 BEGIN_PM:
 
-    mov ebx, MSG_PROT_MODE ; Use our 32-bit print routine to
-    call print_string_pm   ; announce we are in protected mode
+    mov ebx, MSG_PROT_MODE      ; Use our 32-bit print routine to
+    call print_string_pm        ; announce we are in protected mode
 
-    call KERNEL_OFFSET     ; Now jump to the address of our loaded
+    mov eax, PMEM_ENT           ; Pass physical memory map as argument to
+    push eax                    ; kernel's main function
+    jmp KERNEL_OFFSET      ; Now jump to the address of our loaded
                            ; kernel code, assume the brace position,
                            ; and cross your fingers. Here we go!
 

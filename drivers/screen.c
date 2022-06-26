@@ -162,10 +162,11 @@ consputc(int c)
     print_char(c, -1, -1, vga_attr(TERMINAL_DEFAULT_COLOR_BG, TERMINAL_DEFAULT_COLOR_FG));
 }
 
+static char digits[] = "0123456789abcdef";
+
 static void
 printint(int xx, int base, int sign)
 {
-  static char digits[] = "0123456789abcdef";
   char buf[16];
   int i;
   unsigned int x;
@@ -187,6 +188,16 @@ printint(int xx, int base, int sign)
     consputc(buf[i]);
 }
 
+static void
+printptr(uint64_t x)
+{
+  int i;
+  consputc('0');
+  consputc('x');
+  for (i = 0; i < (sizeof(uint64_t) * 2); i++, x <<= 4)
+    consputc(digits[x >> (sizeof(uint64_t) * 8 - 4)]);
+}
+
 // Print to the console. only understands %d, %x, %p, %s.
 void
 cprintf(char *fmt, ...)
@@ -200,9 +211,9 @@ cprintf(char *fmt, ...)
   if (fmt == 0)
     panic("null fmt");
 
-  // The beauty is that authors didn't use stdarg.h/va_list but just iterate on
-  // the function's arguments on the stack.
-  argp = (unsigned int*)(void*)(&fmt + 1);
+  // The beauty is that authors don't use va_list (stdarg.h) but just iterate
+  // on the function's arguments on the stack.
+  argp = (unsigned int*)(void*)(&fmt + 1); // va_start
   for(i = 0; (c = fmt[i] & 0xff) != 0; i++){
     if(c != '%'){
       consputc(c);
@@ -213,11 +224,15 @@ cprintf(char *fmt, ...)
       break;
     switch(c){
     case 'd':
-      printint(*argp++, 10, 1);
+      printint(*argp++, 10, 1); // va_arg
       break;
     case 'x':
     case 'p':
       printint(*argp++, 16, 0);
+      break;
+    case 'l': // shortcut for %lx
+      printptr(*(uint64_t*)argp);
+      argp += sizeof(uint64_t) / sizeof(argp);
       break;
     case 's':
       if((s = (char*)*argp++) == 0)
