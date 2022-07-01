@@ -5,9 +5,6 @@
 ;       The consequence of overwriting the BIOS code will lead to problems like getting stuck in `int 0x15`
 ; inputs: es:di -> destination buffer for 24 byte entries
 ; outputs: bp = entry count, trashes all registers except esi
-global PMEM_ENT:
-    PMEM_ENT equ 0x8000        ; the number of entries will be stored at 0x8000
-
 pmem_e820:
     mov di, PMEM_ENT+4 ; Set di to 0x8004. Otherwise this code will get stuck in `int 0x15` after some entries are fetched
     xor ebx, ebx   ; ebx must be 0 to start

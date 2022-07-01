@@ -20,10 +20,6 @@ static void timer_interrupt_handler(struct interrupt_state *state) {
     (void) state;   /** Unused. */
 
     ticks++;
-    print(".");
-
-    if (ticks > 300)
-        panic("debug test");
 }
 
 

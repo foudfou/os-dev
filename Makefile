@@ -43,7 +43,7 @@ run: all
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
 os.img: boot/boot_sect.bin kernel.bin
-	cat $^ /dev/zero | dd of=$@ bs=1k count=1440
+	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock
 
 # This builds the binary of our kernel from two object files:
 # 	- the kernel_entry,which jumps to main() in our kernel
@@ -88,3 +88,10 @@ kernel.dis: kernel.bin
 
 objdump-kernel:
 	objdump -b binary --headers -f kernel.bin
+
+# https://stackoverflow.com/a/34424194
+objdump-boot-16:
+	objdump -D -Mintel,i8086 -b binary -m i386  boot/boot_sect.bin
+
+objdump-boot-32:
+	objdump -D -Mintel,i386 -b binary -m i386 boot/boot_sect.bin
