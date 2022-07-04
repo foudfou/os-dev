@@ -18,7 +18,7 @@ Table of contents:
 - [6.3 Handling Interrupts](doc/6.3.Handling_Interrupts.md)
 - [6.4.1 Keyboard Driver](doc/6.4.1.Keyboard_Driver.md)
 - [6.4.2 Timer Driver](doc/6.4.2.Timer_Driver.md)
-- 7 Memory management
+- [7 Memory management](doc/7.Memory.Management.md)
 - [7.1 Interlude: Building and Utilities](doc/7.1.Building_and_Utilities.md)
 - [7.2 Physical Memory Management](doc/7.2.Physical.Memory.Management.md)
 
