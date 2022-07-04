@@ -20,6 +20,7 @@ Table of contents:
 - [6.4.2 Timer Driver](doc/6.4.2.Timer_Driver.md)
 - 7 Memory management
 - [7.1 Interlude: Building and Utilities](doc/7.1.Building_and_Utilities.md)
+- [7.2 Physical Memory Management](doc/7.2.Physical.Memory.Management.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 
@@ -32,8 +33,9 @@ Note the original remaining chapters from WASOS were outlined as:
 - 7.2 Multi-processing
 - 8 Memory management
 
-But hux-kernel somewthat follows a different order inspired by [*Operating
-Systems: Three Easy Pieces*](http://pages.cs.wisc.edu/~remzi/OSTEP/) (OSTEP):
+But hux-kernel somewthat follows a different order inspired by the excellent
+[*Operating Systems: Three Easy
+Pieces*](http://pages.cs.wisc.edu/~remzi/OSTEP/) (OSTEP):
 
 1. Memory
 2. Processes

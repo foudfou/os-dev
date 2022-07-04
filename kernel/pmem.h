@@ -20,11 +20,11 @@ enum e820_type {
 };
 
 struct pmem_info {
-    uint32_t cnt;
+    uint32_t          cnt;
     struct e820_entry entries[];
 };
 
-void pmem_init(const struct pmem_info *);
+void pmem_init(const struct pmem_info *info);
 
 
 #endif /* PMEM_H */

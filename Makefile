@@ -14,7 +14,8 @@ LD      = ld
 # including the standard libaries, we can't use this unless we implement the
 # functions ourselves. [But we implement it ourselves]
 CFLAGS  = -std=c17 -fno-pie -m32 -nostdlib -ffreestanding \
-  -mno-red-zone -fno-builtin -fno-omit-frame-pointer
+  -mno-red-zone -fno-builtin -fno-omit-frame-pointer \
+  -fstack-protector
 LDFLAGS = -m elf_i386 -static
 LDS     = kernel.lds
 
@@ -40,9 +41,14 @@ all: os.img
 run: all
 	bochs
 
+# Sectors loaded from floppy
+KERNEL_SIZE_MAX := $(shell expr 512 \* 40)
+
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
 os.img: boot/boot_sect.bin kernel.bin
+# Ensure our kernel file doesn't exceed what the bootloader will load from the disk.
+	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(( $(KERNEL_SIZE_MAX) )) ]'
 	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock
 
 # This builds the binary of our kernel from two object files:
@@ -77,9 +83,10 @@ clean:
 run-bochs: all
 	bochs -q -f bochsrc
 
+# Exit curses with Alt + 2
 .PHONY: run-qemu
 run-qemu: all
-	qemu-system-x86_64 -fda os.img
+	qemu-system-x86_64 -fda os.img -display curses
 
 
 # Disassemble our kernel - might be useful for debugging.
