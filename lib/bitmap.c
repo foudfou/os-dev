@@ -3,7 +3,7 @@
 
 /**
  * Traverses bitmap to find free slot, mark it as used. Returns the slot index
- * of the allocated slot, or `num_slots` if there is no free slot.
+ * of the allocated slot, or `sz` if there is no free slot.
  */
 uint64_t bitmap_alloc(bitmap *map, uint64_t sz) {
     // TODO acquire lock

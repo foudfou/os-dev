@@ -1,7 +1,34 @@
 #ifndef PMEM_H
 #define PMEM_H
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+
+/** Upper bound of kernel heap. */
+// #define KHEAP_MAX_ADDR 0x00800000   // 8MiB reserved for the kernel
+/* Our kernel is loaded in low memory and the kernel heap will start after the
+   kernel code. We thus need to be frugal. We could also determine this from
+   the e820 memory map. */
+#define KHEAP_MAX_ADDR 0x7FFFF // end of conventional memory, roughly 256 KiB
+
+/*
+  – x << PAGE_SIZE_SHIFT <=> x * PAGE_SIZE
+  – x >> PAGE_SIZE_SHIFT <=> x / PAGE_SIZE
+  – x & PAGE_SIZE_MASK <=> x % PAGE_SIZE
+*/
+#define PAGE_SIZE_SHIFT 12
+#define PAGE_SIZE       (1<<PAGE_SIZE_SHIFT)
+#define PAGE_MASK       ((1<<PAGE_SIZE_SHIFT) - 1)
+
+/** Helper macros on addresses and page alignments. */
+#define ADDR_PAGE_OFFSET(addr) ((addr) & 0x0FFF)
+#define ADDR_PAGE_NUMBER(addr) ((addr) >> PAGE_SIZE_SHIFT)
+
+#define ADDR_PAGE_ALIGNED(addr) (ADDR_PAGE_OFFSET(addr) == 0)
+
+#define ADDR_PAGE_ROUND_DN(addr) ((addr) & 0xFFFFF000)
+#define ADDR_PAGE_ROUND_UP(addr) (ADDR_PAGE_ROUND_DN((addr) + 0x00000FFF))
 
 struct e820_entry {
     uint64_t base;
@@ -24,6 +51,8 @@ struct pmem_info {
     struct e820_entry entries[];
 };
 
+uintptr_t kalloc_temp(const size_t size, bool page_align);
+uint64_t frame_alloc();
 void pmem_init(const struct pmem_info *info);
 
 

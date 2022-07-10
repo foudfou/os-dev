@@ -14,6 +14,8 @@ gdt_null:   ; the mandatory null descriptor
     dd 0x0        ; 'dd' means define double word (i.e. 4 bytes)
     dd 0x0
 
+; The code segment spans 0-0xfffff and we set the Granularity flag to 1, which
+; indicates a Limit scale of 4 KiB blocks. We can thus address 0-fffff00 (4GB).
 gdt_code:   ; the code segment descriptor
     ; base=0x0, limit=0xfffff,
     ; 1st flags: (present)1 (privilege)00 (descriptor type)1 -> 1001b

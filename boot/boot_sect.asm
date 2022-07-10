@@ -50,9 +50,24 @@ global PMEM_ENT:
 
 [bits 16]
 
+; Currently we can't load much more than 40 sectors without risking to override
+; our boot_sect code in memory: 0x1000+(512*40)=0x6000, 0x1000+(512*60)=0x8800.
 KERNEL_SECTORS equ 40  ; Number of sectors read from disk for the kernel
 
-; load_kernel
+; load_kernel. To keep things simple we're loading to lower memory.
+;
+; To load the kernel to 1MiB+ we have to either: 1. use BIOS Int 15h, ah=87h
+; "Copy Extended Memory" (https://unix.stackexchange.com/a/222770/145419),
+; 2. switch to unreal-mode (https://wiki.osdev.org/Unreal_Mode), 3. switch back
+; and forth between real-mode to load from disk, and protected-mode to copy to
+; higher memory (https://wiki.osdev.org/Real_Mode#x86_Assembly_Example) —
+; that's what GRUB does. We could get away with real-mode for a small kernel as
+; we're able to address up to FFFF:FFFFh which is almost 64KB above 1MB
+; (https://groups.google.com/g/alt.os.development/c/S2iZDBzHSW8). A floppy
+; driver for protected mode would be too complicated. It's also worth noting
+; that we can't know for sure if 1MB is usable until getting the memory map
+; from e820: there can be memory hole or defect anywhere. The load/copy call
+; would then fail.
 load_kernel:
     mov bx, MSG_LOAD_KERNEL  ; Print a message to say we are loading the kernel
     call print_string
@@ -82,9 +97,9 @@ BEGIN_PM:
 
 ; Global variables
 BOOT_DRIVE       db 0
-MSG_REAL_MODE    db "Started in 16-bit Real Mode", 0
+MSG_REAL_MODE    db "Started in 16-bit Real Mode", 0xA, 0xD, 0
+MSG_LOAD_KERNEL  db "Loading kernel into memory", 0xA, 0xD, 0
 MSG_PROT_MODE    db "Successfully landed in 32-bit Protected Mode", 0
-MSG_LOAD_KERNEL  db "Loading kernel into memory", 0
 
 ; Bootsector padding
 times 510-($-$$) db 0

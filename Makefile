@@ -1,6 +1,11 @@
-CC      = gcc
+# Using https://aur.archlinux.org/packages/i386-elf-gcc cross-compiler.
+TOOLPREFIX = i386-elf-
+
+CC      = $(TOOLPREFIX)gcc
 AS      = nasm
-LD      = ld
+LD      = $(TOOLPREFIX)ld
+OBJCOPY = $(TOOLPREFIX)objcopy
+OBJDUMP = $(TOOLPREFIX)objdump
 
 # From https://github.com/dreamos82/Osdev-Notes/blob/master/01_Build_Process/02_Overview.md
 #
@@ -13,10 +18,10 @@ LD      = ld
 # compiler library to check for stack smashing attacks. Since we're not
 # including the standard libaries, we can't use this unless we implement the
 # functions ourselves. [But we implement it ourselves]
-CFLAGS  = -std=c17 -fno-pie -m32 -nostdlib -ffreestanding \
-  -mno-red-zone -fno-builtin -fno-omit-frame-pointer \
+CFLAGS  = -std=c17 -fno-pie -nostdlib -ffreestanding \
+  -mno-red-zone -fno-omit-frame-pointer \
   -fstack-protector
-LDFLAGS = -m elf_i386 -static
+LDFLAGS = -static
 LDS     = kernel.lds
 
 # CC      = clang
@@ -42,13 +47,13 @@ run: all
 	bochs
 
 # Sectors loaded from floppy
-KERNEL_SIZE_MAX := $(shell expr 512 \* 40)
+KERNEL_SECTORS := 40
 
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
 os.img: boot/boot_sect.bin kernel.bin
 # Ensure our kernel file doesn't exceed what the bootloader will load from the disk.
-	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(( $(KERNEL_SIZE_MAX) )) ]'
+	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(expr 512 \* $(KERNEL_SECTORS)) ]'
 	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock
 
 # This builds the binary of our kernel from two object files:
@@ -68,7 +73,7 @@ kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJS}
 
 # Assemble the kernel_entry.
 %.o : %.asm
-	$(AS) $< -f elf -o $@
+	$(AS) $< -f elf32 -o $@
 
 %.bin : %.asm
 	$(AS) $< -f bin -I ./boot -o $@
