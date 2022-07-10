@@ -51,7 +51,7 @@ KERNEL_SECTORS := 40
 
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
-os.img: boot/boot_sect.bin kernel.bin
+os.img: boot/stage1.bin boot/stage2.bin kernel.bin
 # Ensure our kernel file doesn't exceed what the bootloader will load from the disk.
 	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(expr 512 \* $(KERNEL_SECTORS)) ]'
 	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock

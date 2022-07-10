@@ -15,18 +15,13 @@ global PMEM_ENT:
     mov bx, MSG_REAL_MODE       ; Announce that we are starting
     call print_string           ; booting from 16-bit real mode
 
-    ; Now would be a good time to detect and enable the A20 line. But,
-    ; 1. properly detecting and enabling A20 is involved, 2. our boot sector is
-    ; already nearing 512B. We might consider making a 2-stage bootloader
-    ; later, but for now we'll deem sufficent to: 1. attempt to enable A20,
-    ; 2. add a safeguard in the kernel when initializing physical memory
-    ; management.
+    ; Now would be a good time to detect and enable the A20 line. But properly
+    ; detecting and enabling A20 is involved. So for now we'll deem sufficent
+    ; to: 1. attempt to enable A20, 2. add a safeguard in the kernel when
+    ; initializing physical memory management.
     ;
     ; See https://wiki.osdev.org/A20
     ; https://www.win.tue.nl/~aeb/linux/kbd/A20.html
-    ;
-    ; Bootloader stage2: https://github.com/gynvael/osdev/tree/master/src/boot
-    ; https://github.com/revenn/OSdev/blob/master/stage2.asm
     mov ax, 0x2401              ; Activate A20-Gate
     int 15h
 
