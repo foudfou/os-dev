@@ -5,6 +5,9 @@ switch_to_pm:
                           ; set-up the protected mode interrupt vector
                           ; otherwise interrupts will run riot
 
+    mov bx, MSG_SWITCH_PM
+    call print_string
+
     lgdt [gdt_descriptor] ; Load our global descriptor table, which defines
                           ; the protected mode segments (e.g. for code and data)
 
@@ -26,10 +29,12 @@ init_pm:
     mov es, ax
     mov fs, ax
     mov gs, ax
+
     ; By "free space", the original author supposedly meant below "low memory",
     ; which technically ends at 0x0009FFFF (See
     ; https://wiki.osdev.org/Memory_Map_(x86)#Overview). That region seems to
     ; be partially used by the EBDA (Extended BIOS Data Area) though.
     mov ebp, 0x90000        ; Update our stack position so it is right
     mov esp, ebp            ; at the top of the free space.
-    call BEGIN_PM           ; Finally, call some well-known label
+
+    call start32            ; Finally, call some well-known label
