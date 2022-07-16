@@ -5,12 +5,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/** Upper bound of kernel heap. */
-// #define KHEAP_MAX_ADDR 0x00800000   // 8MiB reserved for the kernel
-/* Our kernel is loaded in low memory and the kernel heap will start after the
-   kernel code. We thus need to be frugal. We could also determine this from
-   the e820 memory map. */
-#define KHEAP_MAX_ADDR 0x7FFFF // end of conventional memory, roughly 256 KiB
+/** Upper bound of kernel heap.
+
+    The kernel heap will start after the kernel code. Since the kernel is
+    loaded to extended memory, we should have plenty of space. We could also
+    determine this from the e820 memory map. */
+#define KHEAP_MAX_ADDR 0x800000   // 8MiB reserved for the kernel
 
 /*
   – x << PAGE_SIZE_SHIFT <=> x * PAGE_SIZE

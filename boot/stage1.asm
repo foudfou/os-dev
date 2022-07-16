@@ -2,12 +2,15 @@
 ; https://github.com/gynvael/osdev/blob/master/src/boot/stage1.asm
 [bits 16]
 [org 0x7c00]
+
+    jmp 0x0000:start
+start:
     ; Setup the segments and stack. A typical location for a stack is
     ; 0000:7C00, right before the bootloader.
-    cli
     xor ax, ax
     mov ds, ax
     mov es, ax
+    cli
     mov ss, ax
     mov sp, 0x07c00              ; Set-up stack.
     sti

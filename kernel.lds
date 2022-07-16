@@ -14,10 +14,10 @@ ENTRY(_start)
 SECTIONS
 {
     /**
-     * Kernel's booting code could be loaded starting at 1KiB address following
-     * the bootloader convention.
+     * Kernel's booting code could be loaded starting at 1MiB address by the
+     * bootloader by convention.
      */
-    . = 0x1000;
+    . = 0x100000;
 
     /* Take note of the beginning of the kernel. This only makes sense if
        output supports symbol, like elf, unlike binary! */
