@@ -15,8 +15,6 @@
  */
 #include <stdint.h>
 
-typedef uint32_t bitmap;
-
 #define BITMAP_RESERVE_BITS(n) (((n)+0x1f)>>5)
 #define BITMAP_DWORD_IDX(x) ((x)>>5)
 #define BITMAP_BIT_IDX(x) ((x)&0x1f) // ((1<<DW_INDEX_BITS)-1)
@@ -27,6 +25,6 @@ typedef uint32_t bitmap;
      , (void)0                                                          \
         )
 
-uint64_t bitmap_alloc(bitmap *map, uint64_t sz);
+uint64_t bitmap_alloc(uint32_t map[], uint64_t sz);
 
 #endif /* BITMAP_H */

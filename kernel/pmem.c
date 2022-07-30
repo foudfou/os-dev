@@ -11,8 +11,9 @@
 extern char __k_start, __k_end;
 
 /** Bitmap tracking used frames. */
-static bitmap *frame_map = NULL;
-static uint64_t num_frames = 0;
+static uint32_t *frame_map = NULL;
+
+uint64_t num_frames = 0;
 
 /** Kernel heap bottom address - starts above kernel code. */
 static uintptr_t kheap_curr;
@@ -62,7 +63,7 @@ uint64_t frame_alloc() {
     return bitmap_alloc(frame_map, num_frames);
 }
 
-void pmem_init(const struct pmem_info *info) {
+void pmem_init(const struct pmem_info *info, uint64_t *ram_size) {
     if (!a20_enabled())
         panic("A20 line not enabled");
 
@@ -90,8 +91,15 @@ void pmem_init(const struct pmem_info *info) {
     kheap_curr = ADDR_PAGE_ROUND_UP((uintptr_t) &__k_end);
     cprintf("kernel heap starting at 0x%p\n", kheap_curr);
 
-    num_frames = extmem->len / PAGE_SIZE; // extmem->len >> PAGE_SIZE_SHIFT
-    size_t frame_map_size_in_bytes = num_frames / 8;
-    frame_map = (bitmap *)kalloc_temp(frame_map_size_in_bytes, false);
+    *ram_size = extmem->len;
+
+    /* Allocate space for the frame bitmap in our kernel heap. */
+    num_frames = *ram_size / PAGE_SIZE; // *ram_size >> PAGE_SIZE_SHIFT
+    // frame_map is a bitmap, i.e. an uint32_t array. An uint32_t, 4 bytes, can
+    // store 32 frames. How many bytes do we need to store num_frames?
+    size_t frame_map_size_in_u32 = num_frames / 32;
+    // Fortunately this divide-then-multiply chain is not optimized by the compiler.
+    size_t frame_map_size_in_bytes = frame_map_size_in_u32 * 4;
+    frame_map = (uint32_t*)kalloc_temp(frame_map_size_in_bytes, false);
     memset(frame_map, 0, frame_map_size_in_bytes);
 }

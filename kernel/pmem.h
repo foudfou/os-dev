@@ -27,7 +27,7 @@
 
 #define ADDR_PAGE_ALIGNED(addr) (ADDR_PAGE_OFFSET(addr) == 0)
 
-#define ADDR_PAGE_ROUND_DN(addr) ((addr) & 0xFFFFF000)
+#define ADDR_PAGE_ROUND_DN(addr) (((uint32_t)(addr)) & 0xFFFFF000)
 #define ADDR_PAGE_ROUND_UP(addr) (ADDR_PAGE_ROUND_DN((addr) + 0x00000FFF))
 
 struct e820_entry {
@@ -51,9 +51,11 @@ struct pmem_info {
     struct e820_entry entries[];
 };
 
+extern uint64_t num_frames;
+
 uintptr_t kalloc_temp(const size_t size, bool page_align);
-uint64_t frame_alloc();
-void pmem_init(const struct pmem_info *info);
+uint64_t  frame_alloc();
+void      pmem_init(const struct pmem_info *info, uint64_t *ram_size);
 
 
 #endif /* PMEM_H */
