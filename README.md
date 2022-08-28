@@ -22,6 +22,7 @@ Table of contents:
 - [7.1 Interlude: Building and Utilities](doc/7.1.Building_and_Utilities.md)
 - [7.2 Physical Memory Management](doc/7.2.Physical_Memory_Management.md)
 - [7.3 Virtual Memory](doc/7.3.Virtual_Memory.md)
+- [7.4 Heap Allocator](doc/7.4.Heap.Allocator.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 

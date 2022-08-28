@@ -53,6 +53,9 @@ struct pmem_info {
 
 extern uint64_t num_frames;
 
+/** Extern resulted `kheap_curr` for heap allocator initialization. */
+extern uint32_t kheap_curr;
+
 uintptr_t kalloc_temp(const size_t size, bool page_align);
 uint64_t  frame_alloc();
 void      pmem_init(const struct pmem_info *info, uint64_t *ram_size);

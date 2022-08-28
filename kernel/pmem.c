@@ -16,7 +16,7 @@ static uint32_t *frame_map = NULL;
 uint64_t num_frames = 0;
 
 /** Kernel heap bottom address - starts above kernel code. */
-static uintptr_t kheap_curr;
+uint32_t kheap_curr;
 
 /* Checks if A20 is enabled
  *
@@ -52,7 +52,7 @@ kalloc_temp(const size_t size, bool page_align)
 
     /** If exceeds the 8MiB kernel memory boundary, panic. */
     if (kheap_curr + size > KHEAP_MAX_ADDR)
-        error("_kalloc_temp: kernel memory exceeds boundary");
+        error("kalloc_temp: kernel memory exceeds boundary");
 
     uintptr_t temp = kheap_curr;
     kheap_curr += size;
@@ -89,7 +89,6 @@ void pmem_init(const struct pmem_info *info, uint64_t *ram_size) {
 
     /* Kernel heap starts after kernel code. */
     kheap_curr = ADDR_PAGE_ROUND_UP((uintptr_t) &__k_end);
-    cprintf("kernel heap starting at 0x%p\n", kheap_curr);
 
     *ram_size = extmem->len;
 
@@ -98,7 +97,8 @@ void pmem_init(const struct pmem_info *info, uint64_t *ram_size) {
     // frame_map is a bitmap, i.e. an uint32_t array. An uint32_t, 4 bytes, can
     // store 32 frames. How many bytes do we need to store num_frames?
     size_t frame_map_size_in_u32 = num_frames / 32;
-    // Fortunately this divide-then-multiply chain is not optimized by the compiler.
+    // Fortunately the compliler doesn't optimize to `num_frames / 8` which is
+    // not the same!
     size_t frame_map_size_in_bytes = frame_map_size_in_u32 * 4;
     frame_map = (uint32_t*)kalloc_temp(frame_map_size_in_bytes, false);
     memset(frame_map, 0, frame_map_size_in_bytes);
