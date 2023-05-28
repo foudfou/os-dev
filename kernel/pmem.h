@@ -5,13 +5,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/** Upper bound of kernel heap.
-
-    The kernel heap will start after the kernel code. Since the kernel is
-    loaded to extended memory, we should have plenty of space. We could also
-    determine this from the e820 memory map. */
-#define KHEAP_MAX_ADDR 0x800000   // 8MiB reserved for the kernel
-
 /*
   – x << PAGE_SIZE_SHIFT <=> x * PAGE_SIZE
   – x >> PAGE_SIZE_SHIFT <=> x / PAGE_SIZE
@@ -53,12 +46,7 @@ struct pmem_info {
 
 extern uint64_t num_frames;
 
-/** Extern resulted `kheap_curr` for heap allocator initialization. */
-extern uint32_t kheap_curr;
-
-uintptr_t kalloc_temp(const size_t size, bool page_align);
-uint64_t  frame_alloc();
-void      pmem_init(const struct pmem_info *info, uint64_t *ram_size);
+void pmem_init(const struct pmem_info *info, uint32_t *phys_end);
 
 
 #endif /* PMEM_H */

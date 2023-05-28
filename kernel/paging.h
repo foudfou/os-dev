@@ -6,9 +6,6 @@
 #include <stddef.h>
 #include "kernel/pmem.h"
 
-/** Up to where is kernel memory, == the upper bound of kernel heap. */
-#define KMEM_MAX 0x00800000     /** 8MiB reserved for the kernel. */
-
 
 // Control Register flags
 #define CR0_PE          0x00000001      // Protection Enable
@@ -64,7 +61,7 @@
 
 // Identity-map kernel for now.
 #define V2P(a) ((uint32_t) (a))
-#define P2V(a) ((uintptr_t)((char *) (a)))
+#define P2V(a) ((void *)((char *) (a)))
 
 /**
  * Helper macro to control the MMU: invalidate the TLB entry for the

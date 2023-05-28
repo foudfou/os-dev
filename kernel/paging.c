@@ -1,6 +1,7 @@
 #include "lib/debug.h"
 #include "lib/string.h"
 #include "kernel/idt.h"
+#include "kernel/kalloc.h"
 #include "kernel/pmem.h"
 
 #include "kernel/paging.h"
@@ -26,7 +27,7 @@ walkpgdir(pde_t *pgdir, const uint32_t va, bool alloc)
         if(!alloc)
             return 0;
 
-        pgtab = (pte_t *) kalloc_temp(PAGE_SIZE, true);
+        pgtab = (pte_t *) kalloc();
         assert(pgtab != NULL);
         memset(pgtab, 0, PAGE_SIZE);
 
@@ -106,13 +107,14 @@ inline void paging_switch_pgdir(const pde_t *pgdir) {
 }
 
 /** Initialize paging and switch to use paging. */
-void paging_init(uint64_t ram_size) {
+void paging_init(uint64_t phys_end) {
     /**
      * Allocate the one-page space for the kernel's page directory in
      * the kernel heap. All pages of page directory/tables must be
      * page-aligned.
      */
-    kernel_pgdir = (pde_t *) kalloc_temp(PAGE_SIZE, true);
+    if((kernel_pgdir = (pde_t*)kalloc()) == 0)
+        panic("kalloc");
     memset(kernel_pgdir, 0, PAGE_SIZE);
 
     /**
@@ -120,36 +122,13 @@ void paging_init(uint64_t ram_size) {
      * memory. This means we need to map all the allowed kernel physical frames
      * (0 -> KHEAP_MAX_ADDR) as its identity virtual address in the kernel page
      * table, and reserve this entire physical memory region.
-     */
-    uint32_t addr = 0;
-    while (addr < KHEAP_MAX_ADDR) {
-        uint64_t frame_idx = frame_alloc();
-        assert(frame_idx < num_frames);
-
-        pte_t *pte = walkpgdir(kernel_pgdir, addr, true);
-        assert(pte != NULL);
-
-        *pte = (frame_idx * PAGE_SIZE) | PTE_P;
-
-        addr += PAGE_SIZE;
-    }
-
-    /**
-     * Also map the rest of physical memory just so the kernel can access any
-     * physical address directly. We thus mark pte's present. We don't allocate
-     * frames for now though, which is inconsistent, but can will this later.
      *
-     * See also paging mapping for xv6
+     * See also xv6 kernel's mappings:
      * https://github.com/mit-pdos/xv6-public/blob/master/vm.c#L105
      */
-    while (addr < ram_size) {
-        pte_t *pte = walkpgdir(kernel_pgdir, addr, true);
-        assert(pte != NULL);
-
-        *pte = ADDR_PAGE_NUMBER(addr) | PTE_P;
-        /* cprintf("__*pte=%p, addr=%p\n", *pte, addr); */
-
-        addr += PAGE_SIZE;
+    if(mappages(kernel_pgdir, 0, phys_end, 0, PTE_W) < 0) {
+        /* freevm(pgdir); */
+        panic("mappages");
     }
 
     /**

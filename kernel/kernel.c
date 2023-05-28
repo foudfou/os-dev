@@ -2,21 +2,22 @@
 #include "drivers/screen.h"
 #include "drivers/timer.h"
 #include "kernel/idt.h"
-#include "kernel/kheap.h"
+#include "kernel/kalloc.h"
 #include "kernel/paging.h"
 #include "kernel/pic.h"
 #include "kernel/pmem.h"
 
 #include "lib/string.h"
 
+extern char __k_start, __k_end; // defined by kernel.lds
+
 void main(const struct pmem_info *pmem_info) {
     clear_screen();
     print("FOUDIL WAS HERE\n(c) 2022\n");
 
-    uint64_t ram_size = 0;
-    pmem_init(pmem_info, &ram_size);
-    cprintf("kernel heap starting at 0x%p\n", kheap_curr);
-    cprintf("Available memory: %l bytes\n", ram_size);
+    uint32_t phys_end = 0;
+    pmem_init(pmem_info, &phys_end);
+    cprintf("Max usable memory address: 0x%p\n", phys_end - 1);
 
     idt_init();
     print("IDT initialized\n");
@@ -30,48 +31,14 @@ void main(const struct pmem_info *pmem_info) {
     kbd_init();        // PS/2 keyboard support
     print("PS/2 keyboard initialized\n");
 
-    paging_init(ram_size);
+    kinit1((void*)PGROUNDUP(&__k_end), P2V(4*1024*1024)); // phys page allocator
+    paging_init(phys_end);
     print("Pagination enabled\n");
 
-    kheap_init();
-    print("kernel heap memory allocator initialized\n");
+    kinit2(P2V(4*1024*1024), P2V(phys_end));
+    print("Kernel heap allocator initialized\n");
 
     __asm__("sti");    // Enable interrupts
-
-    // TESTING kalloc
-
-    cprintf("kalloc arr1 - 128 bytes...\n");
-    char *arr1 = (char *) kalloc(128 * sizeof(char));
-    strncpy(arr1, "hello\n", 127);
-
-    cprintf("kalloc arr2 - 23 bytes...\n");
-    char *arr2 = (char *) kalloc(23 * sizeof(char));
-    strncpy(arr2, "hello\n", 22);
-
-    cprintf("kalloc arr3 - 437 bytes...\n");
-    char *arr3 = (char *) kalloc(437 * sizeof(char));
-    strncpy(arr3, "hello\n", 436);
-
-    cprintf("kfree arr3, should coalesce with the big chunk...\n");
-    kfree(arr3);
-
-    cprintf("kfree arr1, should have no coalescing...\n");
-    kfree(arr1);
-
-    cprintf("kalloc arr4 - 54 bytes, should reuse the first chunk...\n");
-    char *arr4 = (char *) kalloc(54 * sizeof(char));
-    strncpy(arr4, "hello\n", 53);
-
-    cprintf("kfree arr2, should coalesce with both neighbors...\n");
-    kfree(arr2);
-
-    struct kheap_node *hdr = OBJECT_TO_HEADER(arr4);
-    cprintf("  BEFORE: arr4=%p, hdr=%p {.szie=%x, .next=%x}\n", arr4, hdr, hdr->size, hdr->next);
-    strncpy((char *)&hdr->next, "AAAA", sizeof(uint32_t));
-    cprintf("  AFTER:  arr4=%p, hdr=%p {.szie=%x, .next=%x}\n", arr4, hdr, hdr->size, hdr->next);
-
-    cprintf("kfree arr4, should trigger magic failure...\n");
-    kfree(arr4);
 
     while (1)   // CPU idles
         __asm__ __volatile__( "hlt" );
