@@ -7,7 +7,7 @@
 #include "kernel/paging.h"
 
 /** kernel's identity-mapping page directory. */
-pde_t *kernel_pgdir;    /** Allocated at paging init. */
+pde_t *kpgdir;    /** Allocated at paging init. */
 
 
 // Return the address of the PTE in page table pgdir
@@ -21,24 +21,27 @@ walkpgdir(pde_t *pgdir, const uint32_t va, bool alloc)
     pte_t *pgtab;
 
     pde = &pgdir[PDX(va)];
+
     if(*pde & PTE_P){
         pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
     } else {
-        if(!alloc)
+        if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
             return 0;
-
-        pgtab = (pte_t *) kalloc();
-        assert(pgtab != NULL);
-        memset(pgtab, 0, PAGE_SIZE);
-
-        *pde = V2P(pgtab) | PTE_P | PTE_U;
+        // Make sure all those PTE_P bits are zero.
+        memset(pgtab, 0, PGSIZE);
+        // The permissions here are overly generous, but they can
+        // be further restricted by the permissions in the page table
+        // entries, if necessary.
+        /* PTE_W is especially needed for the region where the kernel stack is
+           going to live! */
+        *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
     }
     return &pgtab[PTX(va)];
 }
 
 // For debugging
 uint32_t paging_get_paddr(uint32_t vaddr) {
-    pte_t *pte = walkpgdir(kernel_pgdir, vaddr, false);
+    pte_t *pte = walkpgdir(kpgdir, vaddr, false);
     assert(pte != NULL);
     return *pte + ADDR_PAGE_OFFSET(vaddr);
 }
@@ -57,11 +60,15 @@ mappages(pde_t *pgdir, uintptr_t va, uint32_t size, uint32_t pa, int perm)
   for(;;){
     if((pte = walkpgdir(pgdir, (uint32_t)a, true)) == 0)
       return -1;
+
     if(*pte & PTE_P)
       panic("remap");
+
     *pte = pa | perm | PTE_P;
+
     if(a == last)
       break;
+
     a += PGSIZE;
     pa += PGSIZE;
   }
@@ -113,44 +120,27 @@ void paging_init(uint64_t phys_end) {
      * the kernel heap. All pages of page directory/tables must be
      * page-aligned.
      */
-    if((kernel_pgdir = (pde_t*)kalloc()) == 0)
+    if((kpgdir = (pde_t*)kalloc()) == 0)
         panic("kalloc");
-    memset(kernel_pgdir, 0, PAGE_SIZE);
+    memset(kpgdir, 0, PGSIZE);
 
     /**
-     * Identity-map the kernel's virtual address space to the physical
-     * memory. This means we need to map all the allowed kernel physical frames
-     * (0 -> KHEAP_MAX_ADDR) as its identity virtual address in the kernel page
-     * table, and reserve this entire physical memory region.
+     * Map all physical memory to the kernel's virtual address space.
      *
      * See also xv6 kernel's mappings:
-     * https://github.com/mit-pdos/xv6-public/blob/master/vm.c#L105
+     * https://github.com/mit-pdos/xv6-public/blob/eeb7b415dbcb12cc362d0783e41c3d1f44066b17/vm.c#L105
      */
-    if(mappages(kernel_pgdir, 0, phys_end, 0, PTE_W) < 0) {
+    if(mappages(kpgdir, KERNBASE, phys_end - 0, 0, PTE_W) < 0) {
         /* freevm(pgdir); */
         panic("mappages");
     }
 
     /**
-     * Register the page fault handler. This acation must be done before
+     * Register the page fault handler. This action must be done before
      * we do the acatual switch towards using paging.
      */
     isr_register(INT_IRQ_PAGE_FAULT, &page_fault_handler);
 
     /** Load the address of kernel page directory into CR3. */
-    paging_switch_pgdir(kernel_pgdir);
-
-    /**
-     * Enable paging by setting the two proper bits of CR0:
-     *   - PG bit (31): enable paging
-     *   - PE bit (0): enable protected mode
-     *
-     * We are not setting the WP bit, so the read/write bit of any PTE just
-     * controls whether the page is user writable - in kernel priviledge any
-     * page can be written.
-     */
-    uint32_t cr0;
-    __asm__ __volatile__ ("movl %%cr0, %0" : "=r" (cr0) :);
-    cr0 |= CR0_PG | CR0_PE;
-    __asm__ __volatile__ ("movl %0, %%cr0" : : "r" (cr0));
+    paging_switch_pgdir((pde_t*)V2P(kpgdir));
 }

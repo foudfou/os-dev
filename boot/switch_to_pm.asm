@@ -36,6 +36,5 @@ init_pm:
     ; be partially used by the EBDA (Extended BIOS Data Area) though.
     mov ebp, 0x90000        ; Update our stack position so it is right
     mov esp, ebp            ; at the top of the free space.
-    xor ebp, ebp            ; Set EBP to NULL for stack tracing's use.
 
     call start32            ; Finally, call some well-known label

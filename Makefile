@@ -20,8 +20,10 @@ OBJDUMP = $(TOOLPREFIX)objdump
 # functions ourselves. [But we implement it ourselves]
 CFLAGS  = -std=c17 -fno-pie -nostdlib -ffreestanding \
   -mno-red-zone -fno-omit-frame-pointer \
-  -fstack-protector
+  -fstack-protector \
+  -ggdb
 LDFLAGS = -static
+ASFLAGS = -g
 LDS     = kernel.lds
 
 # CC      = clang
@@ -47,7 +49,7 @@ run: all
 	bochs
 
 # Sectors loaded from floppy
-KERNEL_SECTORS := 40
+KERNEL_SECTORS := 50
 
 # This is the actual disk image that the computer loads
 # which is the combination of our compiled bootsector and kernel
@@ -59,10 +61,12 @@ os.img: boot/stage1.bin boot/stage2.bin kernel.bin
 # This builds the binary of our kernel from two object files:
 # 	- the kernel_entry,which jumps to main() in our kernel
 # 	- the compiled C kernel
-kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJS}
+kernel.bin: kernel/kernel_entry.o kernel/isr.o kernel/gdt_load.o ${OBJS}
 # `-Ttext` locates text section at 0x1000, so our code knows to offset local
-# address references from this origin, exactly liek `org 0x7c00`.
-	$(LD) $(LDFLAGS) -o $@ -T$(LDS) $^ --oformat binary -M > kernel.map
+# address references from this origin, exactly like `org 0x7c00`.
+	$(LD) $(LDFLAGS) -o kernel.elf -T $(LDS) $^ --print-map > kernel.map
+# Note binary (ld or objcopy discards all symbols and relocation information).
+	$(OBJCOPY) -S -O binary kernel.elf $@
 
 # Generic rule for compiling C code to an object file
 # For simplicity , we C files depend on all header files .
@@ -71,16 +75,16 @@ kernel.bin: kernel/kernel_entry.o kernel/isr.o ${OBJS}
 # We also need the chain to be consistent: 32-bit
 	$(CC) -I$(PWD) -c $< $(CFLAGS) -o $@
 
-# Assemble the kernel_entry.
 %.o : %.asm
-	$(AS) $< -f elf32 -o $@
+	$(AS) $(ASFLAGS) $< -f elf32 -o $@
 
 %.bin : %.asm
 	$(AS) $< -f bin -I ./boot -o $@
 
 .PHONY: clean
 clean:
-	rm -fr *.bin *.dis *.o os.img *.map
+	rm -fr *.bin *.elf *.dis *.o os.img *.map
+	rm -fr boot/*.bin kernel/*.o  drivers/*.o
 	rm -fr $(OBJS)
 
 
@@ -91,19 +95,24 @@ run-bochs: all
 # Exit curses with Alt + 2
 .PHONY: run-qemu
 run-qemu: all
-	qemu-system-x86_64 -fda os.img -display curses
+	qemu-system-i386 -fda os.img -display curses # -m 4G # -d int #
 
+.PHONY: run-qemu-debug
+run-qemu-debug: all
+	@printf "==================================\n"
+	@printf "make run-gdb-attach\n"
+	@printf "==================================\n"
+	qemu-system-i386 -fda os.img -S -s
 
-# Disassemble our kernel - might be useful for debugging.
+run-gdb-attach:
+	gdb -x .gdbinit
+
+# Disassemble our kernel
 kernel.dis: kernel.bin
 	ndisasm -b 32 $< > $@
 
-objdump-kernel:
-	objdump -b binary --headers -f kernel.bin
+objdump-kernel-bin:
+	objdump -D -b binary -m i386 kernel.bin
 
-# https://stackoverflow.com/a/34424194
-objdump-boot-16:
-	objdump -D -Mintel,i8086 -b binary -m i386  boot/boot_sect.bin
-
-objdump-boot-32:
-	objdump -D -Mintel,i386 -b binary -m i386 boot/boot_sect.bin
+objdump-kernel-elf:
+	objdump -D kernel.elf

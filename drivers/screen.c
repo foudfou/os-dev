@@ -1,4 +1,5 @@
 #include "kernel/low_level.h"
+#include "kernel/paging.h"
 #include "lib/debug.h"
 #include "lib/string.h"
 
@@ -14,6 +15,9 @@ const enum vga_color TERMINAL_DEFAULT_COLOR_FG = VGA_COLOR_LIGHT_GREY;
 
 static const char WHITE_ON_BLACK = vga_attr(TERMINAL_DEFAULT_COLOR_BG,
                                             TERMINAL_DEFAULT_COLOR_FG);
+
+static unsigned char volatile *vidmem = (unsigned char*)P2V(0xb8000);  // CGA memory
+
 
 static int get_screen_offset(int col, int row) { return (row * MAX_COLS + col) * 2; }
 
@@ -56,13 +60,13 @@ static int handle_scrolling(int cursor_offset) {
   /* Shuffle the rows back one. */
   int i;
   for (i = 1; i < MAX_ROWS; i++) {
-    memcpy((void*)(VIDEO_ADDRESS + get_screen_offset(0, i - 1)),
-           (const void*)(VIDEO_ADDRESS + get_screen_offset(0, i)),
+    memcpy((void*)(vidmem + get_screen_offset(0, i - 1)),
+           (const void*)(vidmem + get_screen_offset(0, i)),
            MAX_COLS * 2);
   }
 
   /* Blank the last line by setting all bytes to 0 */
-  char* last_line = (char*)(VIDEO_ADDRESS + get_screen_offset(0, MAX_ROWS - 1));
+  char* last_line = (char*)(vidmem + get_screen_offset(0, MAX_ROWS - 1));
   for (i = 0; i < MAX_COLS * 2; i++) {
     last_line[i] = 0;
   }
@@ -77,9 +81,6 @@ static int handle_scrolling(int cursor_offset) {
 
 /* Print a char on the screen at col, row, or at cursor position */
 static void print_char(const char character, int col, int row, char attribute_byte) {
-  /* Create a byte (char) pointer to the start of video memory */
-  unsigned char volatile *vidmem = (unsigned char*) VIDEO_ADDRESS;
-
   /* If attribute byte is zero, assume the default style. */
   if (!attribute_byte) {
     attribute_byte = WHITE_ON_BLACK;

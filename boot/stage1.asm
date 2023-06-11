@@ -1,5 +1,11 @@
 ; Inspired by https://github.com/revenn/OSdev/blob/master/stage1.asm
 ; https://github.com/gynvael/osdev/blob/master/src/boot/stage1.asm
+;
+; "The BIOS places the stack pointer 512 bytes beyond the end of the boot
+; sector, meaning that the stack cannot exceed 512 bytes. It may be necessary
+; to move the stack to a larger area."
+; https://en.wikibooks.org/wiki/X86_Assembly/Bootloaders#Technical_Details
+
 [bits 16]
 [org 0x7c00]
 

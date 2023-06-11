@@ -19,7 +19,7 @@ extern const int   kbd_scanmap_set1[KBD_BREAKCODE_LIMIT];
 extern const char *kbd_scanmap_ascii_regular[KBD_BREAKCODE_LIMIT];
 extern const char *kbd_scanmap_ascii_shift[KBD_BREAKCODE_LIMIT];
 
-static bool shift, alt, ctrl = false;
+static bool shift, alt, ctrl;
 
 /**
  * Keyboard interrupt handler registered for IRQ # 0.
@@ -80,6 +80,8 @@ static void kbd_interrupt_handler(struct interrupt_state *state) {
 
 /** Initialize the PS/2 keyboard device. */
 void kbd_init() {
+    shift = alt = ctrl = false;
+
     isr_register(IDT_IRQ_KEYBOARD, &kbd_interrupt_handler);
 
     pic_enable_irq_line(PIC_INT_KEYBOARD);

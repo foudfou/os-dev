@@ -8,3 +8,6 @@ TAGS
 GPATH
 GRTAGS
 GTAGS
+.gdb_history
+kernel.elf
+kernel.sym

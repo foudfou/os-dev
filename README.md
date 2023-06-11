@@ -6,8 +6,8 @@ Look into git tag `before-kernel-reorg` for exercises before kernel code organiz
 
 ## Writing a Simple Operating System — from Scratch Continued
 
-*Writing a Simple Operating System — from Scratch* (WASOS) qby Nick Blundell is
-incomplete. This is an attempt at completing it.
+*Writing a Simple Operating System — from Scratch* (WASOS) by Nick Blundell is
+incomplete :cry:. This is an attempt at completing it :tada:.
 
 We mostly follow the excellent
 [hux-kernel](https://github.com/josehu07/hux-kernel) from Guanzhou Hu, with
@@ -22,7 +22,8 @@ Table of contents:
 - [7.1 Interlude: Building and Utilities](doc/7.1.Building_and_Utilities.md)
 - [7.2 Physical Memory Management](doc/7.2.Physical_Memory_Management.md)
 - [7.3 Virtual Memory](doc/7.3.Virtual_Memory.md)
-- [7.4 Heap Allocator](doc/7.4.Heap.Allocator.md)
+- [7.4 Heap Allocator](doc/7.4.Heap_Allocator.md)
+- [7.5 Higher half kernel](doc/7.5.Higher_Half_Kernel.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 
@@ -57,3 +58,6 @@ A few inspirational sources:
 - [skylight](https://github.com/austanss/skylight)
 - [SOS](https://sos.enix.org/)
 - [xv6 x86](https://github.com/mit-pdos/xv6-public)
+- [brokenthorn](http://www.brokenthorn.com/Resources/OSDevIndex.html)
+- [blogos-discuss](https://os.phil-opp.com/)
+- [xv6-annotated](https://github.com/palladian1/xv6-annotated)

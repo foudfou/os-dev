@@ -1,6 +1,6 @@
 [bits 32] ; protected mode
 
-section .text:
+section .text
 
 [extern isr_handler]
 

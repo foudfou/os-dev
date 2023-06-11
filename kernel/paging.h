@@ -25,10 +25,10 @@
 #define PTXSHIFT        12      // offset of PTX in a linear address
 
 // page directory index
-#define PDX(va)         (((uint32_t)(va) >> PDXSHIFT) & 0x3FF)
+#define PDX(va)         (((va) >> PDXSHIFT) & 0x3FF)
 
 // page table index
-#define PTX(va)         (((uint32_t)(va) >> PTXSHIFT) & 0x3FF)
+#define PTX(va)         (((va) >> PTXSHIFT) & 0x3FF)
 
 // construct virtual address from indexes and offset
 #define PGADDR(d, t, o) ((uint32_t)((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
@@ -54,14 +54,11 @@
 
 // Key addresses for address space layout (see kmap in vm.c for layout)
 #define KERNBASE 0x80000000         // First kernel virtual address
+/* #define KERNBASE 0 */
 #define KERNLINK (KERNBASE+EXTMEM)  // Address where kernel is linked
 
-/* #define V2P(a) (((uint32_t) (a)) - KERNBASE) */
-/* #define P2V(a) ((void *)(((char *) (a)) + KERNBASE)) */
-
-// Identity-map kernel for now.
-#define V2P(a) ((uint32_t) (a))
-#define P2V(a) ((void *)((char *) (a)))
+#define V2P(a) (((uint32_t) (a)) - KERNBASE)
+#define P2V(a) ((void *)(((char *) (a)) + KERNBASE))
 
 /**
  * Helper macro to control the MMU: invalidate the TLB entry for the
@@ -97,7 +94,7 @@ typedef uint32_t pde_t;
 typedef uint32_t pte_t;
 
 /** Extern the kernel page directory pointer to the scheduler. */
-extern pde_t *kernel_pgdir;
+extern pde_t *kpgdir;
 
 uint32_t paging_get_paddr(uint32_t vaddr);
 

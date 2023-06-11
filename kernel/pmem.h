@@ -5,23 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*
-  – x << PAGE_SIZE_SHIFT <=> x * PAGE_SIZE
-  – x >> PAGE_SIZE_SHIFT <=> x / PAGE_SIZE
-  – x & PAGE_SIZE_MASK <=> x % PAGE_SIZE
-*/
-#define PAGE_SIZE_SHIFT 12
-#define PAGE_SIZE       (1<<PAGE_SIZE_SHIFT)
-#define PAGE_MASK       ((1<<PAGE_SIZE_SHIFT) - 1)
-
 /** Helper macros on addresses and page alignments. */
 #define ADDR_PAGE_OFFSET(addr) ((addr) & 0x0FFF)
-#define ADDR_PAGE_NUMBER(addr) ((addr) >> PAGE_SIZE_SHIFT)
-
-#define ADDR_PAGE_ALIGNED(addr) (ADDR_PAGE_OFFSET(addr) == 0)
-
-#define ADDR_PAGE_ROUND_DN(addr) (((uint32_t)(addr)) & 0xFFFFF000)
-#define ADDR_PAGE_ROUND_UP(addr) (ADDR_PAGE_ROUND_DN((addr) + 0x00000FFF))
 
 struct e820_entry {
     uint64_t base;

@@ -11,6 +11,7 @@
  *   - 0 - 31 are ISRs for CPU-generated exceptions
  *   - >= 32 are mapped as custom device IRQs, so ISR 32 means IRQ 0, etc.
  */
+#define INT_IRQ_PROT_FAULT 13
 #define INT_IRQ_PAGE_FAULT 14
 #define IDT_IRQ_BASE       32
 #define IDT_IRQ_TIMER      (IDT_IRQ_BASE + 0)

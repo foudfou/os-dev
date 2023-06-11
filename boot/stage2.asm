@@ -96,8 +96,6 @@ start32:
     mov ebx, MSG_PROT_MODE      ; Use our 32-bit print routine to
     call print_string_pm        ; announce we are in protected mode
 
-    mov eax, MEM_MAP            ; Pass physical memory map as argument to
-    push eax                    ; kernel's main function
     jmp KERNEL_OFFSET2     ; Now jump to the address of our loaded
                            ; kernel code, assume the brace position,
                            ; and cross your fingers. Here we go!
