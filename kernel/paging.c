@@ -1,3 +1,4 @@
+#include "drivers/screen.h"
 #include "lib/debug.h"
 #include "lib/string.h"
 #include "kernel/idt.h"

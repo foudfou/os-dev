@@ -1,6 +1,6 @@
 #include "kernel/low_level.h"
 #include "kernel/paging.h"
-#include "lib/debug.h"
+#include "kernel/spinlock.h"
 #include "lib/string.h"
 
 #include "drivers/screen.h"
@@ -18,6 +18,10 @@ static const char WHITE_ON_BLACK = vga_attr(TERMINAL_DEFAULT_COLOR_BG,
 
 static unsigned char volatile *vidmem = (unsigned char*)P2V(0xb8000);  // CGA memory
 
+static struct {
+  struct spinlock lock;
+  int locking;
+} cons;
 
 static int get_screen_offset(int col, int row) { return (row * MAX_COLS + col) * 2; }
 
@@ -203,11 +207,13 @@ printptr(uint64_t x)
 void
 cprintf(char *fmt, ...)
 {
-  int i, c;
+  int i, c, locking;
   unsigned int *argp;
   char *s;
 
-  // TODO acquire lock
+  locking = cons.locking;
+  if(locking)
+    acquire(&cons.lock);
 
   if (fmt == 0)
     panic("null fmt");
@@ -252,5 +258,39 @@ cprintf(char *fmt, ...)
     }
   }
 
-  // TODO release lock
+
+  if(locking)
+    release(&cons.lock);
+}
+
+
+void
+panic(char *s)
+{
+  int i;
+  uint32_t pcs[10];
+
+  cli();
+  cons.locking = 0;
+  /* // use lapiccpunum so that we can call panic from mycpu() */
+  /* cprintf("lapicid %d: panic: ", lapicid()); */
+  cprintf("panic: ");
+  cprintf(s);
+  cprintf("\n");
+  getcallerpcs(&s, pcs);
+  for(i=0; i<10; i++)
+    cprintf(" %p", pcs[i]);
+  /* panicked = 1; // freeze other CPU */
+
+  while (1)
+      __asm__ __volatile__( "hlt" );
+}
+
+
+void
+consoleinit(void)
+{
+  initlock(&cons.lock, "console");
+
+  cons.locking = 1;
 }

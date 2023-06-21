@@ -13,31 +13,21 @@
 
 void stack_trace();
 
-/** Panicking macro. */
-#define panic(fmt, args...) do {                                        \
-        __asm__ __volatile__( "cli" );                                  \
-        cprintf("PANIC: " fmt "\n", ##args);                            \
-        stack_trace();                                                  \
-        while (1)                                                       \
-            __asm__ __volatile__( "hlt" );                              \
-        __builtin_unreachable();                                        \
-    } while (0)
-
 /** Assertion macro. */
 #define assert(condition)   do {                                        \
         if (!(condition)) {                                             \
-            panic("assertion failed @ function '%s',"                   \
-                  " file '%s': line %d",                                \
-                  __FUNCTION__, __FILE__, __LINE__);                    \
+            cprintf("function '%s', file '%s': line %d",                \
+                    __FUNCTION__, __FILE__, __LINE__);                  \
+            panic("assertion failed");                                  \
         }                                                               \
     } while (0)
 
 /** Error prompting macro. */
 #define error(fmt, args...) do {                                        \
         cprintf("ERROR: " fmt "\n", ##args);                            \
-        panic("error occurred @ function '%s',"                         \
-              " file '%s': line %d",                                    \
-              __FUNCTION__, __FILE__, __LINE__);                        \
+        cprintf("function '%s', file '%s': line %d",                    \
+                __FUNCTION__, __FILE__, __LINE__);                      \
+        panic("error occurred");                                        \
     } while (0)
 
 /** Warning prompting macro. */

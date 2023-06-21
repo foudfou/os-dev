@@ -3,9 +3,10 @@
 // and pipe buffers. Allocates 4096-byte pages.
 /* Lifted from https://github.com/mit-pdos/xv6-public/blob/master/kalloc.c */
 
-#include "lib/debug.h"
+#include "drivers/screen.h"
 #include "lib/string.h"
 #include "kernel/paging.h"
+#include "kernel/spinlock.h"
 
 #include "kernel/kalloc.h"
 
@@ -21,8 +22,8 @@ struct frame {
 };
 
 struct {
-  /* struct spinlock lock; */
-  /* int use_lock; */
+  struct spinlock lock;
+  int use_lock;
   struct frame *freelist;
 } kmem;
 
@@ -39,8 +40,8 @@ kinit1(void *vstart, void *vend)
   // Be explicit about the sentinel value. Xv6 uses 0.
   kmem.freelist = KMEM_SENTINEL;
 
-  /* initlock(&kmem.lock, "kmem"); */
-  /* kmem.use_lock = 0; */
+  initlock(&kmem.lock, "kmem");
+  kmem.use_lock = 0;
 
   freerange(vstart, vend);
   // dump_freelist();
@@ -51,7 +52,7 @@ kinit2(void *vstart, void *vend)
 {
   kheap_end = (uint32_t)vend;
   freerange(vstart, vend);
-  /* kmem.use_lock = 1; */
+  kmem.use_lock = 1;
   dump_freelist();
 }
 
@@ -82,13 +83,13 @@ kfree(char *v)
   // Fill with junk to catch dangling refs.
   memset(v, 1, PGSIZE);
 
-  /* if(kmem.use_lock) */
-  /*   acquire(&kmem.lock); */
+  if(kmem.use_lock)
+    acquire(&kmem.lock);
   r = (struct frame*)v;
   r->next = kmem.freelist;      // points to the previous
   kmem.freelist = r;            // points to the last
-  /* if(kmem.use_lock) */
-  /*   release(&kmem.lock); */
+  if(kmem.use_lock)
+    release(&kmem.lock);
 }
 
 // Allocate one 4096-byte page of physical memory.
@@ -99,15 +100,15 @@ kalloc(void)
 {
   struct frame *r;
 
-  /* if(kmem.use_lock) */
-  /*   acquire(&kmem.lock); */
+  if(kmem.use_lock)
+    acquire(&kmem.lock);
   r = kmem.freelist;
   if (r == KMEM_SENTINEL)
     r = 0;
   else
     kmem.freelist = r->next;
-  /* if(kmem.use_lock) */
-  /*   release(&kmem.lock); */
+  if(kmem.use_lock)
+    release(&kmem.lock);
   return (char*)r;
 }
 

@@ -13,6 +13,7 @@
 extern char __k_start, __k_end; // defined by kernel.lds
 
 void main(const struct pmem_info *mem_info) {
+    consoleinit();
     clear_screen();
     print("FOUDIL WAS HERE\n(c) 2022\n");
 

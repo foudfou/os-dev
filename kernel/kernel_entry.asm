@@ -41,8 +41,7 @@ entry:
     ;; https://ordoflammae.github.io/littleosbook/#setting-up-a-stack
     mov esp, stack + KSTACKSIZE ; point esp to the start of the
                                 ; stack (end of memory area)
-    ; xchg bx, bx                 ; Bochs magi break
-    xor ebp, ebp                ; Set EBP to NULL for stack tracing's use.
+    ; xchg bx, bx                 ; Bochs magic break
 
     ; We could reload the GDT here with a new virtual address, as in
     ; https://github.com/davidedellagiustina/scratch-os/blob/master/src/kernel/kernel_entry.asm#L22,

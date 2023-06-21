@@ -24,6 +24,7 @@ Table of contents:
 - [7.3 Virtual Memory](doc/7.3.Virtual_Memory.md)
 - [7.4 Heap Allocator](doc/7.4.Heap_Allocator.md)
 - [7.5 Higher half kernel](doc/7.5.Higher_Half_Kernel.md)
+- [7.6 Spin Locks](doc/7.6.Spin_Locks.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 

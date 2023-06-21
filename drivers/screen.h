@@ -8,8 +8,8 @@
 #define MAX_COLS 80
 
 // Screen device I/O ports
-#define REG_SCREEN_CTRL 0x3D4
-#define REG_SCREEN_DATA 0x3D5
+#define REG_SCREEN_CTRL 0x3d4
+#define REG_SCREEN_DATA 0x3d5
 
 /**
  * Default to black background + light grey foreground.
@@ -24,6 +24,9 @@ void print(const char* message);
 void print_color(const char *data, size_t size, enum vga_color fg);
 
 void cprintf(char *fmt, ...);
+void panic(char *s);
+
+void consoleinit(void);
 
 
 #endif /* SCREEN_H */

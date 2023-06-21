@@ -1,5 +1,4 @@
 #include <stddef.h>
-#include "lib/debug.h"
 #include "drivers/screen.h"
 #include "kernel/gdt.h"
 #include "kernel/pic.h"
@@ -56,7 +55,8 @@ void isr_handler(struct interrupt_state *state) {
     uint8_t int_no = state->int_no;
 
     if (isr_table[int_no] == NULL) {
-        panic("missing handler for ISR interrupt # %d", int_no);
+        cprintf("missing handler for ISR interrupt # %d", int_no);
+        panic("isr_handler");
     } else
         isr_table[int_no](state);
 

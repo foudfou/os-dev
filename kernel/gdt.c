@@ -1,4 +1,4 @@
-#include "lib/debug.h"
+#include "drivers/screen.h"
 #include "kernel/idt.h"
 
 #include "kernel/gdt.h"
