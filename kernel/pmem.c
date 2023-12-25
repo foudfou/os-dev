@@ -11,6 +11,8 @@ static uint32_t *frame_map = NULL;
 
 uint64_t num_frames = 0;
 
+uint32_t phys_end = 0;
+
 /* Checks if A20 is enabled
  *
  * https://forum.osdev.org/viewtopic.php?p=276550#p276550
@@ -28,7 +30,7 @@ static bool a20_enabled() {
     return *r != *w;
 }
 
-void pmem_init(const struct pmem_info *info, uint32_t *phys_end) {
+void pmem_init(const struct pmem_info *info) {
     if (!a20_enabled())
         panic("A20 line not enabled");
 
@@ -52,5 +54,7 @@ void pmem_init(const struct pmem_info *info, uint32_t *phys_end) {
     if (!extmem)
         panic("extended memory not found");
 
-    *phys_end = (uint32_t)(extmem->base + extmem->len);
+    // For simplicity, our OS being 32-bit, we'll assume the size of the
+    // extended memory fits into an uint32_t.
+    phys_end = (uint32_t)(extmem->base + extmem->len);
 }

@@ -10,8 +10,9 @@ Look into git tag `before-kernel-reorg` for exercises before kernel code organiz
 incomplete :cry:. This is an attempt at completing it :tada:.
 
 We mostly follow the excellent
-[hux-kernel](https://github.com/josehu07/hux-kernel) from Guanzhou Hu, with
-additions or modifications from other sources.
+[hux-kernel](https://github.com/josehu07/hux-kernel) from Guanzhou Hu and
+[xv6-x86](https://github.com/mit-pdos/xv6-public), with additions or
+modifications from other sources.
 
 Table of contents:
 

@@ -10,7 +10,8 @@
  * Default to black background + light grey foreground.
  * Foreground color can be customized with '*_color' functions.
  */
-const enum vga_color TERMINAL_DEFAULT_COLOR_BG = VGA_COLOR_BLUE;
+// FIXME non-black backgrounds should span the whole line.
+const enum vga_color TERMINAL_DEFAULT_COLOR_BG = VGA_COLOR_BLACK;
 const enum vga_color TERMINAL_DEFAULT_COLOR_FG = VGA_COLOR_LIGHT_GREY;
 
 static const char WHITE_ON_BLACK = vga_attr(TERMINAL_DEFAULT_COLOR_BG,
@@ -282,8 +283,12 @@ panic(char *s)
     cprintf(" %p", pcs[i]);
   /* panicked = 1; // freeze other CPU */
 
-  while (1)
-      __asm__ __volatile__( "hlt" );
+  /* «An infinite set of calls on “idle” is better than the execution of a
+     “halt” instruction, since any i/o activities which were under way can be
+     allowed to complete and the system clock can keep ticking.»
+     https://cs3210.cc.gatech.edu/r/unix6.pdf p.25 */
+  for(;;)
+    ;
 }
 
 

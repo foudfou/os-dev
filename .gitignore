@@ -3,6 +3,7 @@ boot_sect.bin
 *.map
 *.dis
 *.o
+*.out
 os.img
 TAGS
 GPATH
@@ -11,3 +12,4 @@ GTAGS
 .gdb_history
 kernel.elf
 kernel.sym
+initcode

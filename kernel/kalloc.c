@@ -114,9 +114,12 @@ kalloc(void)
 
 void dump_freelist() {
     struct frame *p = kmem.freelist;
+    int nframes = 0;
     cprintf("kernel heap start: 0x%p\n", p);
     while (p->next != KMEM_SENTINEL) {
         p = p->next;
+        nframes++;
     }
     cprintf("kernel heap end: 0x%p\n", p);
+    cprintf("number of free frames: %d\n", nframes);
 }

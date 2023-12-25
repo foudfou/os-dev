@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+
 // Mutual exclusion lock.
 struct spinlock {
   // Using uint32_t instead of bool for xchg.
@@ -15,6 +16,9 @@ struct spinlock {
                      // that locked the lock.
 };
 
+
+// Eflags register
+#define FL_IF           0x00000200      // Interrupt Enable
 
 static inline uint32_t
 readeflags(void)

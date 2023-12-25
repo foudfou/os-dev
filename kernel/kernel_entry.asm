@@ -60,9 +60,11 @@ entry:
 
 section .data
 
-KERNEL_PAGE_NUMBER equ (KERNBASE >> 22)  ; Page directory index of kernel's 4MB PTE.
+KERNEL_PAGE_NUMBER equ (KERNBASE >> 22)  ; Page directory index of kernel's 4MB PTE
+NPDENTRIES         equ 1024              ; Number directory entries per page directory
 
 ; https://github.com/amanuel2/OS_Mirror/blob/master/boot.asm
+; Equivalent of xv6's entrypgdir[] https://github.com/mit-pdos/xv6-public/blob/eeb7b415dbcb12cc362d0783e41c3d1f44066b17/main.c#L103
 align 0x1000
 entrypgdir:
     ; This page directory entry identity-maps the first 4MB of the 32-bit physical address space.
@@ -76,7 +78,7 @@ entrypgdir:
     times (KERNEL_PAGE_NUMBER - 1) dd 0                 ; Pages before kernel space.
     ; This page directory entry defines a 4MB page containing the kernel.
     dd 0x00000083
-    times (1024 - KERNEL_PAGE_NUMBER - 1) dd 0  ; Pages after the kernel image.
+    times (NPDENTRIES - KERNEL_PAGE_NUMBER - 1) dd 0  ; Pages after the kernel image.
 
 
 section .bss

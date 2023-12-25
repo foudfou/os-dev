@@ -31,7 +31,9 @@ struct pmem_info {
 
 extern uint64_t num_frames;
 
-void pmem_init(const struct pmem_info *info, uint32_t *phys_end);
+extern uint32_t phys_end;
+
+void pmem_init(const struct pmem_info *info);
 
 
 #endif /* PMEM_H */

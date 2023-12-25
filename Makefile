@@ -58,13 +58,24 @@ os.img: boot/stage1.bin boot/stage2.bin kernel.bin
 	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(expr 512 \* $(KERNEL_SECTORS)) ]'
 	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock
 
+kernel/initcode: kernel/initcode.asm
+	$(AS) $(ASFLAGS) kernel/initcode.asm -f elf32 -o kernel/initcode.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o kernel/initcode.out kernel/initcode.o
+	$(OBJCOPY) -S -O binary kernel/initcode.out kernel/initcode
+
+# Linking ORDER MATTERS!
+OBJS   := kernel/kernel_entry.o ${OBJS} kernel/isr.o kernel/gdt_load.o
+
 # This builds the binary of our kernel from two object files:
 # 	- the kernel_entry,which jumps to main() in our kernel
 # 	- the compiled C kernel
-kernel.bin: kernel/kernel_entry.o kernel/isr.o kernel/gdt_load.o ${OBJS}
-# `-Ttext` locates text section at 0x1000, so our code knows to offset local
-# address references from this origin, exactly like `org 0x7c00`.
-	$(LD) $(LDFLAGS) -o kernel.elf -T $(LDS) $^ --print-map > kernel.map
+kernel.bin: ${OBJS} kernel/initcode
+# `-b <input-format>` specifies a new binary format for object files
+# after this option.
+	$(LD) $(LDFLAGS) -o kernel.elf -T $(LDS) \
+		--oformat=elf32-i386 $(OBJS) \
+		-b binary kernel/initcode \
+		--print-map > kernel.map
 # Note binary (ld or objcopy discards all symbols and relocation information).
 	$(OBJCOPY) -S -O binary kernel.elf $@
 
@@ -84,7 +95,7 @@ kernel.bin: kernel/kernel_entry.o kernel/isr.o kernel/gdt_load.o ${OBJS}
 .PHONY: clean
 clean:
 	rm -fr *.bin *.elf *.dis *.o os.img *.map
-	rm -fr boot/*.bin kernel/*.o  drivers/*.o
+	rm -fr boot/*.bin kernel/*.o drivers/*.o kernel/*.out kernel/initcode
 	rm -fr $(OBJS)
 
 

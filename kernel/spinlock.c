@@ -2,37 +2,9 @@
 
 #include "drivers/screen.h"
 #include "kernel/paging.h"
+#include "kernel/proc.h"
 
 #include "kernel/spinlock.h"
-
-
-// Eflags register
-#define FL_IF           0x00000200      // Interrupt Enable
-
-// Per-CPU state
-struct cpu {
-  /* uchar apicid;                // Local APIC ID */
-  /* struct context *scheduler;   // swtch() here to enter scheduler */
-  /* struct taskstate ts;         // Used by x86 to find stack for interrupt */
-  /* struct segdesc gdt[NSEGS];   // x86 global descriptor table */
-  /* volatile uint started;       // Has the CPU started? */
-  int ncli;                    // Depth of pushcli nesting.
-  int intena;                  // Were interrupts enabled before pushcli?
-  /* struct proc *proc;           // The process running on this cpu or null */
-};
-
-// Must be called with interrupts disabled to avoid the caller being
-// rescheduled between reading lapicid and running through the loop.
-struct cpu*
-mycpu(void)
-{
-  static struct cpu cpu0 = {0}; // FIXME Work with single cpu for now
-
-  if(readeflags()&FL_IF)
-    panic("mycpu called with interrupts enabled\n");
-
-  return &cpu0;
-}
 
 
 

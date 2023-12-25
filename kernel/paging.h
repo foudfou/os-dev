@@ -47,7 +47,7 @@
 #define PTE_U           0x004   // User
 #define PTE_PS          0x080   // Page Size
 
-// Address in page table or page directory entry
+// Extract address from page table or page directory entry
 #define PTE_ADDR(pte)   ((uint32_t)(pte) & ~0xFFF)
 #define PTE_FLAGS(pte)  ((uint32_t)(pte) &  0xFFF)
 
@@ -99,6 +99,9 @@ extern pde_t *kpgdir;
 uint32_t paging_get_paddr(uint32_t vaddr);
 
 void paging_switch_pgdir(const pde_t *pgdir);
+
+pde_t* setupkvm(void);
+void inituvm(pde_t *pgdir, char *init, size_t sz);
 
 void paging_init();
 
