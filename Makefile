@@ -103,10 +103,18 @@ clean:
 run-bochs: all
 	bochs -q -f bochsrc
 
+QEMUOPTS = -fda os.img -smp 2
+
 # Exit curses with Alt + 2
 .PHONY: run-qemu
 run-qemu: all
-	qemu-system-i386 -fda os.img -display curses # -m 4G # -d int #
+# -nographic disables graphic output
+	qemu-system-i386 $(QEMUOPTS) -display curses # -m 4G # -d int #
+
+# Exit with Ctl-A X
+.PHONY: run-qemu-nogr
+run-qemu-nogr: all
+	qemu-system-i386 $(QEMUOPTS) -nographic # -serial pty -monitor pty
 
 .PHONY: run-qemu-debug
 run-qemu-debug: all

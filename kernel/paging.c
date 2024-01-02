@@ -1,3 +1,4 @@
+#include "drivers/acpi.h"
 #include "drivers/screen.h"
 #include "lib/debug.h"
 #include "lib/string.h"
@@ -6,6 +7,8 @@
 #include "kernel/pmem.h"
 
 #include "kernel/paging.h"
+
+#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
 /** kernel's identity-mapping page directory. */
 pde_t *kpgdir;    /** Allocated at paging init. */
@@ -208,12 +211,24 @@ setupkvm(void)
      * See also xv6 kernel's mappings:
      * https://github.com/mit-pdos/xv6-public/blob/eeb7b415dbcb12cc362d0783e41c3d1f44066b17/vm.c#L105
      */
-    if(mappages(pgdir, KERNBASE, phys_end - 0, 0, PTE_W) < 0) {
-        freevm(pgdir);
-        panic("mappages");
-    }
+    if(mappages(pgdir, KERNBASE, phys_end - 0, 0, PTE_W) < 0)
+        goto mapfail;
+
+    // For ACPI. The should not be any overlap with kernel space. Size
+    // arbitrarily set to the whole space until virtual start of virtual kernel
+    // space.
+    if(mappages(pgdir, (uintptr_t)P2V(acpi), acpi_len, acpi, PTE_W) < 0)
+        goto mapfail;
+
+    // For IOAPIC. FIXME why if 0xfec00000 not in the pmem tables???
+    if(mappages(pgdir, DEVSPACE, 0xf000000, DEVSPACE, PTE_W) < 0)
+        goto mapfail;
 
     return pgdir;
+
+  mapfail:
+    freevm(pgdir);
+    panic("mappages");
 }
 
 

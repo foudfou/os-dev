@@ -82,7 +82,7 @@ static void kbd_interrupt_handler(struct interrupt_state *state) {
 void kbd_init() {
     shift = alt = ctrl = false;
 
-    isr_register(IDT_IRQ_KEYBOARD, &kbd_interrupt_handler);
+    isr_register(IDT_IRQ_BASE + IDT_IRQ_KEYBOARD, &kbd_interrupt_handler);
 
     pic_enable_irq_line(PIC_INT_KEYBOARD);
 }

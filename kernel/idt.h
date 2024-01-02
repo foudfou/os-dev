@@ -14,8 +14,12 @@
 #define INT_IRQ_PROT_FAULT 13
 #define INT_IRQ_PAGE_FAULT 14
 #define IDT_IRQ_BASE       32
-#define IDT_IRQ_TIMER      (IDT_IRQ_BASE + 0)
-#define IDT_IRQ_KEYBOARD   (IDT_IRQ_BASE + 1)
+// For these, use +IDT_IRQ_BASE to get the ISR.
+#define IDT_IRQ_TIMER      0
+#define IDT_IRQ_KEYBOARD   1
+#define IDT_IRQ_COM1       4
+#define IDT_IRQ_IDE        14
+#define IDT_IRQ_ERROR      19
 #define IDT_IRQ_SIZE_MAX   48
 
 #define IDT_DESCRIPTOR_X16_INTERRUPT  0x06

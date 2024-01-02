@@ -60,8 +60,8 @@ entry:
 
 section .data
 
-KERNEL_PAGE_NUMBER equ (KERNBASE >> 22)  ; Page directory index of kernel's 4MB PTE
-NPDENTRIES         equ 1024              ; Number directory entries per page directory
+NKERNPG     equ (KERNBASE >> 22)  ; Page directory index of kernel's 4MB PTE
+NPDENTRIES  equ 1024              ; Number directory entries per page directory
 
 ; https://github.com/amanuel2/OS_Mirror/blob/master/boot.asm
 ; Equivalent of xv6's entrypgdir[] https://github.com/mit-pdos/xv6-public/blob/eeb7b415dbcb12cc362d0783e41c3d1f44066b17/main.c#L103
@@ -75,10 +75,10 @@ entrypgdir:
     ; This entry must be here -- otherwise the kernel will crash immediately after paging is
     ; enabled because it can't fetch the next instruction! It's ok to unmap this page later.
     dd 0x00000083
-    times (KERNEL_PAGE_NUMBER - 1) dd 0                 ; Pages before kernel space.
+    times (NKERNPG - 1) dd 0                 ; Pages before kernel space.
     ; This page directory entry defines a 4MB page containing the kernel.
     dd 0x00000083
-    times (NPDENTRIES - KERNEL_PAGE_NUMBER - 1) dd 0  ; Pages after the kernel image.
+    times (NPDENTRIES - NKERNPG - 1) dd 0  ; Pages after the kernel image.
 
 
 section .bss

@@ -1,3 +1,4 @@
+#include "drivers/uart.h"
 #include "kernel/low_level.h"
 #include "kernel/paging.h"
 #include "kernel/spinlock.h"
@@ -136,7 +137,7 @@ static void print_at(const char* message, int col, int row) {
   }
 }
 
-void print(const char* message) { print_at(message, -1, -1); }
+void print(const char* s) { cprintf("%s", s); }
 
 
 void clear_screen() {
@@ -165,6 +166,11 @@ void print_color(const char *data, size_t size, enum vga_color fg) {
 void
 consputc(int c)
 {
+    if(c == BACKSPACE){
+        uartputc('\b'); uartputc(' '); uartputc('\b');
+    } else
+        uartputc(c);
+
     print_char(c, -1, -1, vga_attr(TERMINAL_DEFAULT_COLOR_BG, TERMINAL_DEFAULT_COLOR_FG));
 }
 

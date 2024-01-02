@@ -11,6 +11,9 @@
 #define REG_SCREEN_CTRL 0x3d4
 #define REG_SCREEN_DATA 0x3d5
 
+// FIXME can't we use KEY_BACKSPACE?
+#define BACKSPACE 0x100
+
 /**
  * Default to black background + light grey foreground.
  * Foreground color can be customized with '*_color' functions.

@@ -1,3 +1,4 @@
+#include "drivers/acpi.h"
 #include "drivers/screen.h"
 #include "lib/string.h"
 
@@ -9,9 +10,7 @@
 /** Bitmap tracking used frames. */
 static uint32_t *frame_map = NULL;
 
-uint64_t num_frames = 0;
-
-uint32_t phys_end = 0;
+uintptr_t phys_end = 0;
 
 /* Checks if A20 is enabled
  *
@@ -49,10 +48,22 @@ void pmem_init(const struct pmem_info *info) {
             entry->base >= PMEM_EXTENDED_ADDR) {
             extmem = entry;
         }
+
+        if (!acpi &&
+            (entry->type == E820_TYPE_ACPI ||
+             (extmem && entry->type == E820_TYPE_RESERVED))) {
+            acpi = (uintptr_t)entry;
+            acpi_len = entry->len;
+        }
     }
 
     if (!extmem)
         panic("extended memory not found");
+
+    if (!acpi)
+        panic("acpi memory not found");
+    acpi = (uintptr_t)(((struct e820_entry *)acpi)->base);
+    cprintf("ACPI Info: 0x%p, len=0x%x\n", acpi, acpi_len);
 
     // For simplicity, our OS being 32-bit, we'll assume the size of the
     // extended memory fits into an uint32_t.

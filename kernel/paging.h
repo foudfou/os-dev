@@ -52,13 +52,14 @@
 #define PTE_FLAGS(pte)  ((uint32_t)(pte) &  0xFFF)
 
 
-// Key addresses for address space layout (see kmap in vm.c for layout)
+// Key addresses for address space layout (see kmap in vm.c for layout).
 #define KERNBASE 0x80000000         // First kernel virtual address
 /* #define KERNBASE 0 */
 #define KERNLINK (KERNBASE+EXTMEM)  // Address where kernel is linked
+#define DEVSPACE 0xFE000000         // Other devices are at high addresses
 
-#define V2P(a) (((uint32_t) (a)) - KERNBASE)
-#define P2V(a) ((void *)(((char *) (a)) + KERNBASE))
+#define V2P(a) (((uintptr_t) (a)) - KERNBASE)
+#define P2V(a) ((void *)(((uintptr_t) (a)) + KERNBASE))
 
 /**
  * Helper macro to control the MMU: invalidate the TLB entry for the

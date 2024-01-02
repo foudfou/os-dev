@@ -18,8 +18,8 @@ struct ptable {
 /** Next available PID value, incrementing overtime. */
 static uint16_t nextpid = 1;
 
-static struct cpu cpu0 = {0}; // FIXME working with single cpu for now
-
+// xv6 mp.c
+static struct cpu cpu0 = {0}; // FIXME populate from ACPI
 
 // Must be called with interrupts disabled to avoid the caller being
 // rescheduled between reading lapicid and running through the loop.

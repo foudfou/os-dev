@@ -28,7 +28,7 @@ static void timer_interrupt_handler(struct interrupt_state *state) {
  * PIT to run in mode 3 with given frequency in Hz.
  */
 void timer_init(void) {
-    isr_register(IDT_IRQ_TIMER, &timer_interrupt_handler);
+    isr_register(IDT_IRQ_BASE + IDT_IRQ_TIMER, &timer_interrupt_handler);
 
     /**
      * Calculate the frequency divisor needed to run with the given

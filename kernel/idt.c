@@ -55,7 +55,7 @@ void isr_handler(struct interrupt_state *state) {
     uint8_t int_no = state->int_no;
 
     if (isr_table[int_no] == NULL) {
-        cprintf("missing handler for ISR interrupt # %d", int_no);
+        cprintf("missing handler for ISR interrupt # %d\n", int_no);
         panic("isr_handler");
     } else
         isr_table[int_no](state);

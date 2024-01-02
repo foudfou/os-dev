@@ -29,8 +29,6 @@ struct pmem_info {
     struct e820_entry entries[];
 };
 
-extern uint64_t num_frames;
-
 extern uint32_t phys_end;
 
 void pmem_init(const struct pmem_info *info);
