@@ -221,7 +221,7 @@ setupkvm(void)
         goto mapfail;
 
     // For IOAPIC. FIXME why if 0xfec00000 not in the pmem tables???
-    if(mappages(pgdir, DEVSPACE, 0xf000000, DEVSPACE, PTE_W) < 0)
+    if(mappages(pgdir, DEVSPACE, 0xf00000, DEVSPACE, PTE_W) < 0)
         goto mapfail;
 
     return pgdir;

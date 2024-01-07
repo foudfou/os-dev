@@ -1,6 +1,7 @@
 // Mutual exclusion spin locks.
 
 #include "drivers/screen.h"
+#include "kernel/cpu.h"
 #include "kernel/paging.h"
 #include "kernel/proc.h"
 

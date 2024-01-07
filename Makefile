@@ -64,7 +64,7 @@ kernel/initcode: kernel/initcode.asm
 	$(OBJCOPY) -S -O binary kernel/initcode.out kernel/initcode
 
 # Linking ORDER MATTERS!
-OBJS   := kernel/kernel_entry.o ${OBJS} kernel/isr.o kernel/gdt_load.o
+OBJS := kernel/kernel_entry.o ${OBJS} kernel/isr.o kernel/gdt_load.o kernel/swtch.o
 
 # This builds the binary of our kernel from two object files:
 # 	- the kernel_entry,which jumps to main() in our kernel
@@ -103,7 +103,8 @@ clean:
 run-bochs: all
 	bochs -q -f bochsrc
 
-QEMUOPTS = -fda os.img -smp 2
+# As of qemu 6.2, `-smp cpus=2` is `-smp sockets=1,cores=2`, i.e. 1 cpu.
+QEMUOPTS = -fda os.img -smp sockets=2,cores=2
 
 # Exit curses with Alt + 2
 .PHONY: run-qemu

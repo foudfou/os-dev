@@ -1,13 +1,13 @@
 # Writing a Simple Operating System — from Scratch
 
-Exercise solutions for [original book from Nick Blundell](http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)
+Solutions to exercises in the [original book from Nick Blundell](http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf)
 
 Look into git tag `before-kernel-reorg` for exercises before kernel code organization.
 
-## Writing a Simple Operating System — from Scratch Continued
+## Writing a Simple Operating System — from Scratch *Continued*
 
 *Writing a Simple Operating System — from Scratch* (WASOS) by Nick Blundell is
-incomplete :cry:. This is an attempt at completing it :tada:.
+incomplete 😭. This is an attempt at completing it 🎉.
 
 We mostly follow the excellent
 [hux-kernel](https://github.com/josehu07/hux-kernel) from Guanzhou Hu and
@@ -25,7 +25,11 @@ Table of contents:
 - [7.3 Virtual Memory](doc/7.3.Virtual_Memory.md)
 - [7.4 Heap Allocator](doc/7.4.Heap_Allocator.md)
 - [7.5 Higher half kernel](doc/7.5.Higher_Half_Kernel.md)
-- [7.6 Spin Locks](doc/7.6.Spin_Locks.md)
+- [7.6 Interlude — Spin Locks](doc/7.6.Spin_Locks.md)
+- [8 Processes](doc/8.Processes.md)
+- [8.1 Process Creation](doc/8.1.Process_Creation.md)
+- [8.2 Interlude — Serial Console](doc/8.2.Interlude_Serial_Console.md)
+- [8.3 Process Scheduling](doc/8.3.Process_Scheduling.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 
@@ -38,7 +42,7 @@ Note the original remaining chapters from WASOS were outlined as:
 - 7.2 Multi-processing
 - 8 Memory management
 
-But hux-kernel somewthat follows a different order inspired by the excellent
+Hux-kernel somewthat follows a different order inspired by the excellent
 [*Operating Systems: Three Easy
 Pieces*](http://pages.cs.wisc.edu/~remzi/OSTEP/) (OSTEP):
 
@@ -63,3 +67,4 @@ A few inspirational sources:
 - [brokenthorn](http://www.brokenthorn.com/Resources/OSDevIndex.html)
 - [blogos-discuss](https://os.phil-opp.com/)
 - [xv6-annotated](https://github.com/palladian1/xv6-annotated)
+- [mittos64](https://github.com/thomasloven/mittos64)

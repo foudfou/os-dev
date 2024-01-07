@@ -4,6 +4,7 @@
 #include "drivers/screen.h"
 #include "drivers/timer.h"
 #include "drivers/uart.h"
+#include "kernel/cpu.h"
 #include "kernel/gdt.h"
 #include "kernel/idt.h"
 #include "kernel/kalloc.h"
@@ -45,9 +46,9 @@ void main(const struct pmem_info *mem_info) {
     acpi_init();
     ioapicinit();    // another interrupt controller
     uartinit();      // serial port
-    print("COM1 UART serial port enabled\n");
+    print("UART COM1 serial port enabled\n");
 
-    sti();             // Enable interrupts. Now done by scheduler()
+    /* sti();             // Enable interrupts. Now done by scheduler() */
 
     kinit2(P2V(4*1024*1024), P2V(phys_end));
     print("Kernel heap allocator initialized\n");
@@ -59,6 +60,8 @@ void main(const struct pmem_info *mem_info) {
 
     initproc_init();
     print("Init process created\n");
+
+    scheduler();
 
     while (1)   // CPU idles
         __asm__ __volatile__( "hlt" );
