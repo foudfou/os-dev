@@ -74,12 +74,14 @@ void isr_handler(struct interrupt_state *state) {
 void idt_init() {
     // Unused entries and field all default to 0, as per previous initialization.
     for (uint8_t vector = 0; vector < IDT_IRQ_BASE; vector++) {
-        idt_set_descriptor(vector, isr_stub_table[vector], SEG_KCODE * 0x08, IDT_DESCRIPTOR_EXCEPTION);
+        idt_set_descriptor(vector, isr_stub_table[vector], SEG_KCODE << 3, IDT_DESCRIPTOR_EXCEPTION);
     }
 
     for (uint8_t vector = IDT_IRQ_BASE; vector < IDT_IRQ_SIZE_MAX; vector++) {
-        idt_set_descriptor(vector, isr_stub_table[vector], SEG_KCODE * 0x08, IDT_DESCRIPTOR_EXTERNAL);
+        idt_set_descriptor(vector, isr_stub_table[vector], SEG_KCODE << 3, IDT_DESCRIPTOR_EXTERNAL);
     }
+
+    idt_set_descriptor(IDT_TRAP_SYSCALL, isr_stub_table[IDT_TRAP_SYSCALL], SEG_KCODE << 3, IDT_DESCRIPTOR_CALL);
 
     // Setup the IDTR register value.
     idtr.base  = (uintptr_t)&idt[0];

@@ -1,6 +1,7 @@
 #ifndef PROC_H
 #define PROC_H
 
+#include "kernel/idt.h"
 #include "kernel/paging.h"
 
 /** Max number of processes at any time. */
@@ -37,13 +38,14 @@ enum process_state {
 
 /** Process control block (PCB). */
 struct process {
-    char                name[16]; /** Process name */
-    uint16_t            pid;      /** Process ID */
-    struct context     *context;  /** Registers context */
-    enum process_state  state;    /** Process state */
-    pde_t              *pgdir;    /** Process page directory */
-    uint32_t            kstack;   /** Beginning of kernel stack for this process */
-    uint32_t            sz;       /** Size of process memory (bytes) */
+    char                    name[16]; /** Process name */
+    uint16_t                pid;      /** Process ID */
+    struct context         *context;  /** Registers context */
+    enum process_state      state;    /** Process state */
+    pde_t                  *pgdir;    /** Process page directory */
+    uint32_t                kstack;   /** Beginning of kernel stack for this process */
+    uint32_t                sz;       /** Size of process memory (bytes) */
+    struct interrupt_state *tf;       /** Trap state of latest trap (syscall) */
     // ... (TODO)
 };
 

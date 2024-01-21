@@ -44,7 +44,7 @@ isr_wrapper:
     pushad
 
     ; Save DS (as lower 16 bits).
-    mov ax, ds
+    mov eax, ds
     push eax
 
     ; Push a pointer to the current stuff on stack, which are:
@@ -73,19 +73,23 @@ isr_wrapper:
 
     add esp, 4                  ; Clean up the pointer argument.
 
+; Shortcut used only by syscall
+global trapret
+trapret:
+
     ; Restore previous segment descriptor.
     pop eax
-    mov ax, ds
-    mov ax, es
-    mov ax, fs
-    mov ax, gs
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
 
     ; Restores EDI, ESI, EBP, ESP, EBX, EDX, ECX, EAX.
     popad
 
     add esp, 8                  ; Cleans up error code and ISR number.
 
-    iret                        ; This pops CS, EIP, EFLAGS, SS, and ESP.
+    iret                        ; This pops EIP, CS, EFLAGS, ESP, SS
 
 global null_handler
 null_handler:
@@ -143,6 +147,9 @@ isr_no_err_stub  45
 isr_no_err_stub  46
 isr_no_err_stub  47
 
+; syscall
+isr_no_err_stub  64
+
 
 section .rodata:
 
@@ -153,3 +160,5 @@ isr_stub_table:
     dd isr_stub_%+i
 %assign i i+1
 %endrep
+    times (64 - 47 - 1) dd 0
+    dd isr_stub_64

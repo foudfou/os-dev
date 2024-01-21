@@ -81,8 +81,6 @@ mappages(pde_t *pgdir, uintptr_t va, uint32_t size, uint32_t pa, int perm)
 
 /** Page fault (ISR # 14) handler. */
 static void page_fault_handler(struct interrupt_state *state) {
-    (void) state;   /** Unused. */
-
     /** The CR2 register holds the faulty address. */
     uint32_t faulty_addr;
     __asm__ ( "movl %%cr2, %0" : "=r" (faulty_addr) : );
@@ -241,7 +239,7 @@ void paging_init()
      * Register the page fault handler. This action must be done before
      * we do the acatual switch towards using paging.
      */
-    isr_register(INT_IRQ_PAGE_FAULT, &page_fault_handler);
+    isr_register(IDT_INT_PGFLT, &page_fault_handler);
 
     /** Load the address of kernel page directory into CR3. */
     paging_switch_pgdir((pde_t*)V2P(kpgdir));

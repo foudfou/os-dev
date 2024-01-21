@@ -10,7 +10,10 @@
 #include "kernel/proc.h"
 
 // swtch.asm
-void swtch(struct context **old, struct context *new);
+extern void swtch(struct context **old, struct context *new);
+
+// isr.asm
+extern void trapret(void);
 
 // ptable implicitely zero-initialized: "Uninitialized variables with static
 // duration […] are guaranteed to startout as zero"
@@ -23,11 +26,20 @@ struct ptable {
 /** Next available PID value, incrementing overtime. */
 static uint16_t nextpid = 1;
 
+
+static void syscall_handler(struct interrupt_state *state) {
+    int num = state->eax;
+
+    cprintf("Syscall #%d called!\n", num);
+}
+
 void process_init() {
     initlock(&ptable.lock, "ptable");
 
     // ptable and nextpid already initialized. Especially all processes are in
     // state UNUSED.
+
+    isr_register(IDT_TRAP_SYSCALL, &syscall_handler);
 }
 
 /**
@@ -36,10 +48,12 @@ void process_init() {
  * execution.
  */
 static void
-forkret(void)
+process_entry(void)
 {
   // Still holding ptable.lock from scheduler.
   release(&ptable.lock);
+
+  // Return to "caller", actually trapret (see allocproc).
 }
 
 /**
@@ -74,14 +88,27 @@ process_alloc(void)
         return NULL;
     }
     uint32_t sp = p->kstack + KSTACKSIZE;
-    // We'll now allocate remaining process structures on the process stack.
+    // We'll now allocate remaining process structures on the process kernel stack.
 
-    // TODO Trap handling
+    /**
+     * Leave room for the trap state. The initial context will be pushed right
+     * below this trap state, with return address EIP pointing to `trapret`
+     * (the return-from-trap part of `isr_handler_stub`). This way, the new
+     * process, after context switch by the scheduler, automatically jumps into
+     * user mode execution.
+     */
+    sp -= sizeof *p->tf;
+    p->tf = (struct interrupt_state*)sp;
+
+    // Set up new context to start executing at forkret,
+    // which returns to trapret.
+    sp -= sizeof(uint32_t);
+    *(uint32_t*) sp = (uint32_t)trapret;
 
     sp -= sizeof *p->context;
     p->context = (struct context*)sp;
     memset(p->context, 0, sizeof *p->context);
-    p->context->eip = (uint32_t)forkret;
+    p->context->eip = (uint32_t)process_entry; // xv6's forkret
 
     return p;
 }
@@ -108,14 +135,16 @@ initproc_init(void)
 
     p->sz = PGSIZE;
 
-    // TODO trap frame initialization comes here
+    memset(p->tf, 0, sizeof(*p->tf));
+    p->tf->cs = (SEG_UCODE << 3) | DPL_USER;  // 0x1B
+    p->tf->ds = (SEG_UDATA << 3) | DPL_USER;  // 0x23
+    // es = ds in trapret
+    p->tf->ss = p->tf->ds;
+    p->tf->eflags = FL_IF;
+    p->tf->esp = PGSIZE;
+    p->tf->eip = 0;  // beginning of initcode.asm
 
     strncpy(p->name, "initcode", sizeof(p->name) - 1);
-
-    // In 13.-Abstraction-of-Process.md hux directly sets eip to
-    // _binary___src_process_init_start as it doesn't copy the code to the
-    // process memory with inituvm().
-    p->context->eip = 0;
 
     // this assignment to p->state lets other cores
     // run this process. the acquire forces the above
@@ -146,6 +175,21 @@ switchuvm(struct process *p)
     panic("switchuvm: no pgdir");
 
   pushcli();
+  gdt_set_entry(&mycpu()->gdt[SEG_TSS],
+                /* base */ (uint32_t)&mycpu()->ts,
+                /* limit */ sizeof(mycpu()->ts)-1,
+                /* access */ SEG_PRESENT|SEG_RING0|SEG_TSS32_AVAIL, // 0x89 0b10001001
+                /* flags */ 0); // 16-bit segment
+  // SS0 and ESP0 are used by software interrupts.
+  //
+  // Reminder(see gdt_load.asm): selector in segmentation consists of
+  // [15-3: idx, 2: table indicator, 1-0: requested privilege level].
+  mycpu()->ts.ss0 = SEG_KDATA << 3;
+  mycpu()->ts.esp0 = (uint32_t)p->kstack + KSTACKSIZE;
+  // setting IOPL=0 in eflags *and* iomb beyond the tss segment limit
+  // forbids I/O instructions (e.g., inb and outb) from user space
+  mycpu()->ts.iomb = (uint16_t) 0xFFFF;
+  proc_load_task_reg(SEG_TSS << 3);
   paging_switch_pgdir((void*)V2P(p->pgdir));  // switch to process's address space
   popcli();
 }
@@ -190,7 +234,6 @@ scheduler(void)
     }
     release(&ptable.lock);
 
-    break;
   }
 
 }

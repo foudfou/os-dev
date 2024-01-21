@@ -1,16 +1,7 @@
-KERNBASE equ 0x80000000
-
 global start
 start:
+    ; system call #1
+    mov eax, 1
+    int 0x40
 
-    ; Prints a letter 'H' in the second to last VGA line, just to show
-    ; that init gets executed. Please ignore the dirty numbers.
-    mov eax, 0xB8000 + KERNBASE
-    mov bx, 0x0F48
-    mov [eax+3720], bx
-
-    ; Infinite halt loop trick.
-    cli
-halt:
     hlt
-    jmp halt

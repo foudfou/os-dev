@@ -265,7 +265,6 @@ cprintf(char *fmt, ...)
     }
   }
 
-
   if(locking)
     release(&cons.lock);
 }

@@ -103,29 +103,35 @@ clean:
 run-bochs: all
 	bochs -q -f bochsrc
 
+QEMUOPTS = -fda os.img
 # As of qemu 6.2, `-smp cpus=2` is `-smp sockets=1,cores=2`, i.e. 1 cpu.
-QEMUOPTS = -fda os.img -smp sockets=2,cores=2
+# QEMUOPTS += -smp sockets=2,cores=2
 
 # Exit curses with Alt + 2
 .PHONY: run-qemu
 run-qemu: all
 # -nographic disables graphic output
-	qemu-system-i386 $(QEMUOPTS) -display curses # -m 4G # -d int #
+	qemu-system-i386 $(QEMUOPTS) -display curses # -m 4G
 
 # Exit with Ctl-A X
 .PHONY: run-qemu-nogr
 run-qemu-nogr: all
 	qemu-system-i386 $(QEMUOPTS) -nographic # -serial pty -monitor pty
 
-.PHONY: run-qemu-debug
-run-qemu-debug: all
+.PHONY: run-qemu-gdb
+run-qemu-gdb: all
 	@printf "==================================\n"
 	@printf "make run-gdb-attach\n"
 	@printf "==================================\n"
-	qemu-system-i386 -fda os.img -S -s
+	qemu-system-i386 $(QEMUOPTS) -S -s
 
+.PHONY: run-gdb-attach
 run-gdb-attach:
 	gdb -x .gdbinit
+
+.PHONY: run-qemu-log
+run-qemu-log: all
+	qemu-system-i386 $(QEMUOPTS) -serial stdio -no-reboot -d int,cpu_reset
 
 # Disassemble our kernel
 kernel.dis: kernel.bin
