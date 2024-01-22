@@ -55,7 +55,9 @@ extern struct ptable ptable;
 
 void process_init();
 void initproc_init(void);
-void scheduler(void);
 
+struct process* myproc(void);
+
+void scheduler(void);
 
 #endif /* PROC_H */

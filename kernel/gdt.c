@@ -7,11 +7,6 @@
 
 extern void gdt_load(struct gdtr*);
 
-static void default_handler(struct interrupt_state *state) {
-    warn("Caught interrupt %d with error code 0x%x\n", state->int_no, state->err_code);
-    panic("Exception not handled!");
-}
-
 static void protection_fault_handler(struct interrupt_state *state) {
     uint32_t selector = state->err_code;
     warn("Caught protection fault {\n"
@@ -40,9 +35,6 @@ gdt_set_entry(struct segdesc *seg, uint32_t base, uint32_t limit,
 
 
 void gdt_init(void) {
-    for (int i = 0; i < IDT_INT_GPFLT; ++i)
-        isr_register(i, &default_handler);
-
     isr_register(IDT_INT_GPFLT, &protection_fault_handler);
 
     struct cpu *c = &cpus[0]; //cpuid()]; FIXME when we do smp

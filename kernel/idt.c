@@ -2,6 +2,8 @@
 #include "drivers/screen.h"
 #include "kernel/gdt.h"
 #include "kernel/pic.h"
+#include "kernel/proc.h"
+#include "lib/debug.h"
 
 #include "kernel/idt.h"
 
@@ -44,6 +46,19 @@ inline void isr_register(uint8_t int_no, isr_fn handler) {
     isr_table[int_no] = handler;
 }
 
+static void print_interrupt_state(struct interrupt_state *state) {
+    info("interrupt state:");
+    struct process *proc = myproc();
+    cprintf("  Current process: %d - %s\n", proc->pid, proc->name);
+    cprintf("  INT#: %d  ERR_CODE: %x\n",
+            state->int_no, state->err_code);
+    cprintf("  EAX: %x  EIP: %x  ESP: %x\n",
+            state->eax, state->eip, state->esp);
+    cprintf("   DS: %x   CS: %x   SS: %x\n",
+            state->ds, state->cs, state->ss);
+    cprintf("  EFLAGS: %x\n", state->eflags);
+}
+
 /**
  * ISR handler written in C.
  *
@@ -55,6 +70,7 @@ void isr_handler(struct interrupt_state *state) {
     uint8_t int_no = state->int_no;
 
     if (isr_table[int_no] == NULL) {
+        print_interrupt_state(state);
         cprintf("missing handler for ISR interrupt # %d\n", int_no);
         panic("isr_handler");
     } else
@@ -89,4 +105,6 @@ void idt_init() {
 
     // Load the IDT.
     idt_load((uint32_t) &idtr);
+
+    /* __asm__ __volatile__ ( "int $0":: ); */
 }

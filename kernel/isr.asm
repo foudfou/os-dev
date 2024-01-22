@@ -59,7 +59,7 @@ isr_wrapper:
     push eax
 
     ; Load kernel mode data segment descriptor.
-    mov ax, 0x10                ; FIXME how to share asm-defined CODE_SEG ?
+    mov ax, 0x10                ; FIXME share CODE_SEG with gdt.asm
     mov ds, ax
     mov es, ax
     mov fs, ax

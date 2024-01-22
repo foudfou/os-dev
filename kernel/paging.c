@@ -2,13 +2,12 @@
 #include "drivers/screen.h"
 #include "lib/debug.h"
 #include "lib/string.h"
+#include "lib/utils.h"
 #include "kernel/idt.h"
 #include "kernel/kalloc.h"
 #include "kernel/pmem.h"
 
 #include "kernel/paging.h"
-
-#define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
 /** kernel's identity-mapping page directory. */
 pde_t *kpgdir;    /** Allocated at paging init. */

@@ -4,6 +4,7 @@
 #include "kernel/kalloc.h"
 #include "kernel/paging.h"
 #include "kernel/spinlock.h"
+#include "kernel/syscall.h"
 #include "lib/debug.h"
 #include "lib/string.h"
 
@@ -26,12 +27,6 @@ struct ptable {
 /** Next available PID value, incrementing overtime. */
 static uint16_t nextpid = 1;
 
-
-static void syscall_handler(struct interrupt_state *state) {
-    int num = state->eax;
-
-    cprintf("Syscall #%d called!\n", num);
-}
 
 void process_init() {
     initlock(&ptable.lock, "ptable");
@@ -122,8 +117,8 @@ void
 initproc_init(void)
 {
     /** Get the embedded binary of `init.s`. */
-    extern char _binary_kernel_initcode_start[];
-    extern char _binary_kernel_initcode_size[];
+    extern char _binary_user_initcode_start[];
+    extern char _binary_user_initcode_size[];
 
     struct process *p = process_alloc();
     assert(p != NULL);
@@ -131,7 +126,7 @@ initproc_init(void)
     if((p->pgdir = setupkvm()) == 0)
         panic("initproc: out of memory?");
 
-    inituvm(p->pgdir, _binary_kernel_initcode_start, (int)_binary_kernel_initcode_size);
+    inituvm(p->pgdir, _binary_user_initcode_start, (int)_binary_user_initcode_size);
 
     p->sz = PGSIZE;
 
@@ -157,6 +152,19 @@ initproc_init(void)
 
     release(&ptable.lock);
 }
+
+
+
+// Disable interrupts so that we are not rescheduled
+// while reading proc from the cpu structure
+struct process* myproc(void) {
+  pushcli();
+  struct cpu *c = mycpu();
+  struct process *p = c->proc;
+  popcli();
+  return p;
+}
+
 
 
 static inline void proc_load_task_reg(uint16_t sel)
