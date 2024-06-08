@@ -2,7 +2,7 @@
 #define CPU_H
 
 #include "drivers/acpi.h"
-#include "kernel/gdt.h"
+#include "gdt.h"
 
 // Task state segment format
 struct taskstate {

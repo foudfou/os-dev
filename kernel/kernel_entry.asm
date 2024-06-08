@@ -12,12 +12,10 @@ section .text
 [extern main] ; Declate that we will be referencing the external symbol 'main',
               ; so the linker can substitute the final address
 
-CR0_WP     equ 0x00010000       ; Write Protect
-CR0_PG     equ 0x80000000       ; Paging
-CR4_PSE    equ 0x00000010       ; Page size extension
-KERNBASE   equ 0x80000000
+%include "boot/defs.asm"
+%include "kernel/paging_defs.asm"
+
 KSTACKSIZE equ 0x4000           ; 16k
-MEM_MAP    equ 0xA000           ; FIXME share with stage2.asm
 
 global _start ; As a convention, we'll use '_start' to label
 _start:       ; the entry point and use that in the linker script.
@@ -47,8 +45,8 @@ entry:
     ; https://github.com/davidedellagiustina/scratch-os/blob/master/src/kernel/kernel_entry.asm#L22,
     ; but it's ok to do this later in the C part of the kernel.
 
-    mov eax, MEM_MAP + KERNBASE ; Pass physical memory map as argument to
-    push eax                    ; kernel's main function
+    mov eax, E820_MAP + KERNBASE ; Pass physical memory map as argument to
+    push eax                     ; kernel's main function
 
     ; make eip point to a virtual address in the higher half
     mov eax, main

@@ -4,13 +4,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "kernel/pmem.h"
+#include "pmem.h"
 
-
-// Control Register flags
-#define CR0_PE          0x00000001      // Protection Enable
-#define CR0_WP          0x00010000      // Write Protect
-#define CR0_PG          0x80000000      // Paging
+#include "paging_defs.h"
 
 
 // A virtual address 'va' has a three-part structure as follows:
@@ -52,9 +48,6 @@
 #define PTE_FLAGS(pte)  ((uint32_t)(pte) &  0xFFF)
 
 
-// Key addresses for address space layout (see kmap in vm.c for layout).
-#define KERNBASE 0x80000000         // First kernel virtual address
-/* #define KERNBASE 0 */
 #define KERNLINK (KERNBASE+EXTMEM)  // Address where kernel is linked
 #define DEVSPACE 0xFE000000         // Other devices are at high addresses
 

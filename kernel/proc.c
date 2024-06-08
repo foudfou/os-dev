@@ -1,14 +1,14 @@
 #include "drivers/screen.h"
-#include "kernel/cpu.h"
-#include "kernel/gdt.h"
-#include "kernel/kalloc.h"
-#include "kernel/paging.h"
-#include "kernel/spinlock.h"
-#include "kernel/syscall.h"
+#include "cpu.h"
+#include "gdt.h"
+#include "kalloc.h"
+#include "paging.h"
+#include "spinlock.h"
+#include "syscall.h"
 #include "lib/debug.h"
 #include "lib/string.h"
 
-#include "kernel/proc.h"
+#include "proc.h"
 
 // swtch.asm
 extern void swtch(struct context **old, struct context *new);
@@ -23,6 +23,8 @@ struct ptable {
   struct spinlock lock;
   struct process proc[NPROC];
 } ptable;
+
+static struct process *initproc;
 
 /** Next available PID value, incrementing overtime. */
 static uint16_t nextpid = 1;
@@ -43,7 +45,7 @@ void process_init() {
  * execution.
  */
 static void
-process_entry(void)
+enter_process(void)
 {
   // Still holding ptable.lock from scheduler.
   release(&ptable.lock);
@@ -103,30 +105,31 @@ process_alloc(void)
     sp -= sizeof *p->context;
     p->context = (struct context*)sp;
     memset(p->context, 0, sizeof *p->context);
-    p->context->eip = (uint32_t)process_entry; // xv6's forkret
+    p->context->eip = (uint32_t)enter_process; // xv6's forkret
 
     return p;
 }
 
 
 /**
- * Initialize the `init` process - put it in READY state in the process
+ * Initialize the `init` process - put it in RUNNABLE state in the process
  * table so the scheduler can pick it up.
  */
 void
 initproc_init(void)
 {
     /** Get the embedded binary of `init.s`. */
-    extern char _binary_user_initcode_start[];
-    extern char _binary_user_initcode_size[];
+    extern char _binary_user_init_start[];
+    extern char _binary_user_init_size[];
 
     struct process *p = process_alloc();
     assert(p != NULL);
 
+    initproc = p;
     if((p->pgdir = setupkvm()) == 0)
         panic("initproc: out of memory?");
 
-    inituvm(p->pgdir, _binary_user_initcode_start, (int)_binary_user_initcode_size);
+    inituvm(p->pgdir, _binary_user_init_start, (int)_binary_user_init_size);
 
     p->sz = PGSIZE;
 
@@ -137,9 +140,9 @@ initproc_init(void)
     p->tf->ss = p->tf->ds;
     p->tf->eflags = FL_IF;
     p->tf->esp = PGSIZE;
-    p->tf->eip = 0;  // beginning of initcode.asm
+    p->tf->eip = 0;  // beginning of init
 
-    strncpy(p->name, "initcode", sizeof(p->name) - 1);
+    strncpy(p->name, "init", sizeof(p->name) - 1);
 
     // this assignment to p->state lets other cores
     // run this process. the acquire forces the above
@@ -147,12 +150,58 @@ initproc_init(void)
     // because the assignment might not be atomic.
     acquire(&ptable.lock);
 
-    /** Set process state to READY so the scheduler can pick it up. */
-    p->state = READY;
+    /** Set process state to RUNNABLE so the scheduler can pick it up. */
+    p->state = RUNNABLE;
 
     release(&ptable.lock);
 }
 
+// Enter scheduler.  Must hold only ptable.lock
+// and have changed proc->state. Saves and restores
+// intena because intena is a property of this
+// kernel thread, not this CPU. It should
+// be proc->intena and proc->ncli, but that would
+// break in the few places where a lock is held but
+// there's no process.
+void
+enter_scheduler(void)   // sched() in xv6
+{
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+  if(mycpu()->ncli != 1)
+    panic("sched locks");
+  struct process *p = myproc();
+  if(p->state == RUNNING)
+    panic("sched running");
+  if(readeflags()&FL_IF)
+    panic("sched interruptible");
+
+  int intena = mycpu()->intena;
+
+  swtch(&p->context, mycpu()->scheduler);
+
+  mycpu()->intena = intena;
+}
+
+// Exit the current process.  Does not return.
+// An exited process remains in the zombie state
+// until its parent calls wait() to find out it exited.
+void
+exit(int status)
+{
+  struct process *p = myproc();
+
+  if(p == initproc)
+    warn("init exiting"); // TODO panic
+
+  acquire(&ptable.lock);
+
+  // Jump into the scheduler, never to return.
+  p->xstate = status;
+  p->state = ZOMBIE;
+  enter_scheduler();
+  panic("zombie exit");
+}
 
 
 // Disable interrupts so that we are not rescheduled
@@ -202,6 +251,14 @@ switchuvm(struct process *p)
   popcli();
 }
 
+// Switch h/w page table register to the kernel-only page table,
+// for when no process is running.
+void
+switchkvm(void)
+{
+  paging_switch_pgdir((pde_t*)V2P(kpgdir));  // switch to the kernel page table
+}
+
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -223,7 +280,7 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != READY)
+      if(p->state != RUNNABLE)
         continue;
 
       // Switch to chosen process.  It is the process's job
@@ -234,11 +291,12 @@ scheduler(void)
       p->state = RUNNING;
 
       swtch(&(c->scheduler), p->context);
-      /* switchkvm(); */
+
+      switchkvm();
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      /* c->proc = 0; */
+      c->proc = 0;
     }
     release(&ptable.lock);
 

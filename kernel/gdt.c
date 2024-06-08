@@ -1,9 +1,9 @@
 #include "drivers/screen.h"
-#include "kernel/cpu.h"
-#include "kernel/idt.h"
+#include "cpu.h"
+#include "idt.h"
 #include "lib/debug.h"
 
-#include "kernel/gdt.h"
+#include "gdt.h"
 
 extern void gdt_load(struct gdtr*);
 

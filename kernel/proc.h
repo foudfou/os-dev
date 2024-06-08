@@ -1,8 +1,8 @@
 #ifndef PROC_H
 #define PROC_H
 
-#include "kernel/idt.h"
-#include "kernel/paging.h"
+#include "idt.h"
+#include "paging.h"
 
 /** Max number of processes at any time. */
 #define NPROC 64
@@ -30,10 +30,10 @@ struct context {
 enum process_state {
     UNUSED,     /** Indicates PCB slot unused. */
     INITIAL,    // EMBRYO in xv6
-    READY,      // RUNNABLE
+    RUNNABLE,
     RUNNING,
-    BLOCKED,    // SLEEPING
-    TERMINATED  // ZOMBIE
+    SLEEPING,
+    ZOMBIE
 };
 
 /** Process control block (PCB). */
@@ -42,6 +42,7 @@ struct process {
     uint16_t                pid;      /** Process ID */
     struct context         *context;  /** Registers context */
     enum process_state      state;    /** Process state */
+    int32_t                 xstate;   // Exit status to be returned to parent's wait
     pde_t                  *pgdir;    /** Process page directory */
     uint32_t                kstack;   /** Beginning of kernel stack for this process */
     uint32_t                sz;       /** Size of process memory (bytes) */
@@ -55,6 +56,8 @@ extern struct ptable ptable;
 
 void process_init();
 void initproc_init(void);
+
+void exit(int status);
 
 struct process* myproc(void);
 

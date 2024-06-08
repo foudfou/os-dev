@@ -12,4 +12,6 @@ GTAGS
 .gdb_history
 kernel.elf
 kernel.sym
-initcode
+user/initcode
+user/init
+*_defs.h

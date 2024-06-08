@@ -2,8 +2,8 @@
 
 #include "drivers/ioapic.h"
 #include "drivers/screen.h"
-#include "kernel/idt.h"
-#include "kernel/low_level.h"
+#include "idt.h"
+#include "low_level.h"
 
 #include "drivers/uart.h"
 

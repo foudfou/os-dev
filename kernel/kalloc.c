@@ -5,10 +5,10 @@
 
 #include "drivers/screen.h"
 #include "lib/string.h"
-#include "kernel/paging.h"
-#include "kernel/spinlock.h"
+#include "paging.h"
+#include "spinlock.h"
 
-#include "kernel/kalloc.h"
+#include "kalloc.h"
 
 #define KMEM_SENTINEL (struct frame *)&kmem.freelist
 

@@ -2,7 +2,7 @@
 #include "drivers/screen.h"
 #include "lib/string.h"
 
-#include "kernel/pmem.h"
+#include "pmem.h"
 
 /* Well-known memory regions */
 #define PMEM_EXTENDED_ADDR 0x100000 // aka "high mem"

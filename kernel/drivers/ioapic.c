@@ -4,8 +4,8 @@
 
 #include "drivers/acpi.h"
 #include "drivers/screen.h"
-#include "kernel/idt.h"
-#include "kernel/paging.h"
+#include "idt.h"
+#include "paging.h"
 #include "lib/debug.h"
 
 #include "drivers/ioapic.h"

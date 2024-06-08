@@ -9,10 +9,16 @@ Look into git tag `before-kernel-reorg` for exercises before kernel code organiz
 *Writing a Simple Operating System — from Scratch* (WASOS) by Nick Blundell is
 incomplete 😭. This is an attempt at completing it 🎉.
 
+Actually there are existing step-by-step guides for developing an x86
+UNIX-like OS. But, as nothing beats learning-by-doing, this guide is yet
+another documentation of the process, with lots of references and details.
+
 We mostly follow the excellent
 [hux-kernel](https://github.com/josehu07/hux-kernel) from Guanzhou Hu and
 [xv6-x86](https://github.com/mit-pdos/xv6-public), with additions or
-modifications from other sources.
+modifications from other sources. In the end, the result much ressembles a
+Frankenstein OS.
+
 
 Table of contents:
 
@@ -30,6 +36,8 @@ Table of contents:
 - [8.1 Process Creation](doc/8.1.Process_Creation.md)
 - [8.2 Interlude — Serial Console](doc/8.2.Interlude_Serial_Console.md)
 - [8.3 Process Scheduling](doc/8.3.Process_Scheduling.md)
+- [8.4 User Mode Execution](doc/8.4.User_Mode_Execution.md)
+- [8.5 User System Calls](doc/8.5.User_System_Calls.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 
@@ -49,6 +57,7 @@ Pieces*](http://pages.cs.wisc.edu/~remzi/OSTEP/) (OSTEP):
 1. Memory
 2. Processes
 3. Filesystem
+
 
 ## Links
 

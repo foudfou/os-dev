@@ -1,6 +1,6 @@
-#include "kernel/idt.h"
-#include "kernel/low_level.h"
-#include "kernel/pic.h"
+#include "idt.h"
+#include "low_level.h"
+#include "pic.h"
 
 /** Send back PIC end-of-interrupt (EOI) signal. */
 void pic_send_eoi(uint8_t irq) {

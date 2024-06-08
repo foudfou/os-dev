@@ -3,11 +3,11 @@
 #include "lib/debug.h"
 #include "lib/string.h"
 #include "lib/utils.h"
-#include "kernel/idt.h"
-#include "kernel/kalloc.h"
-#include "kernel/pmem.h"
+#include "idt.h"
+#include "kalloc.h"
+#include "pmem.h"
 
-#include "kernel/paging.h"
+#include "paging.h"
 
 /** kernel's identity-mapping page directory. */
 pde_t *kpgdir;    /** Allocated at paging init. */
@@ -93,13 +93,13 @@ static void page_fault_handler(struct interrupt_state *state) {
      *
      * See https://wiki.osdev.org/Paging for more.
      */
-    bool present = state->err_code & 0x1;
-    bool write   = state->err_code & 0x2;
-    bool user    = state->err_code & 0x4;
+    bool present = state->err_code & 1<<0;
+    bool write   = state->err_code & 1<<1;
+    bool user    = state->err_code & 1<<2;
 
     /** Just prints an information message for now. */
     warn("Caught page fault {\n"
-         "  faulty addr = %p\n"
+         "  faulty addr = 0x%p\n"
          "  present: %d\n"
          "  write:   %d\n"
          "  user:    %d\n"

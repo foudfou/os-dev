@@ -1,7 +1,7 @@
 #include "drivers/uart.h"
-#include "kernel/low_level.h"
-#include "kernel/paging.h"
-#include "kernel/spinlock.h"
+#include "low_level.h"
+#include "paging.h"
+#include "spinlock.h"
 #include "lib/string.h"
 
 #include "drivers/screen.h"

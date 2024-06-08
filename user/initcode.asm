@@ -1,21 +1,27 @@
-; TODO include C headers defines
-; http://thomasloven.com/blog/2012/06/C-Headers-In-Asm/
-IDT_TRAP_SYSCALL equ 64
+[bits 32]
 
-SYS_hello equ 1
+section .text
+
+[extern hello]
+[extern exit]
 
 global start
 start:
+    push 1
+    push 2
+    push 3
+    call sys1
+
+end:
+    call exit
+    jmp end
+
+sys1:
     push HELLO_STR
     push HELLO_STR
     push 123
     call hello
-
-    hlt
-
-hello:
-    mov eax, SYS_hello
-    int IDT_TRAP_SYSCALL
+    add esp, 4*3                ; cleanup
     ret
 
 HELLO_STR db "Hello wolrd!", 0

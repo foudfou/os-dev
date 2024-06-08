@@ -1,7 +1,7 @@
 [org 0x7e00]
 [bits 16]
 
-KERNEL_OFFSET1 equ 0x1000       ; Memory offset to which we will temporarily
+KERNEL_OFFSET1 equ 0x20000      ; Memory offset to which we will temporarily
                                 ; load our kernel.
 KERNEL_OFFSET2 equ 0x100000     ; Final memory offset for the kernel.
 
@@ -17,7 +17,7 @@ start16:
     mov bx, MSG_START_STAGE2
     call print_string
 
-    mov dword [MEM_MAP], 0      ; Initialize memory map
+    mov dword [E820_MAP], 0     ; Initialize memory map
     call e820_start             ; scan memory
 
     call load_kernel    ; Load our kernel
@@ -25,6 +25,8 @@ start16:
     mov bx, MSG_KERNEL_LOADED
     call print_string
 
+    ; KERNEL_SECTORS injected by Makefile.
+    ;
     ; To load the kernel to 1MiB+ we currently use BIOS Int 15h, ah=87h "Copy
     ; Extended Memory". Other solutions include:
     ;
@@ -80,12 +82,18 @@ load_kernel:
     mov bx, MSG_LOAD_KERNEL  ; Print a message to say we are loading the kernel
     call print_string
 
-    mov bx, KERNEL_OFFSET1
+    ; Dst = ES:BX
+    push es
+    mov bx, KERNEL_OFFSET1 >> 4
+    mov es, bx
+    mov bx, KERNEL_OFFSET1 & 0xffff
+
     mov dh, KERNEL_SECTORS
     mov al, 1 + STAGE2_SECTORS + 1    ; Start reading from sector BL.
     mov dl, [BOOT_DRIVE]
     call disk_load
 
+    pop es
     ret
 
 [bits 32]

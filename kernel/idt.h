@@ -42,7 +42,7 @@
 #define IDT_IRQ_ERROR      19
 #define IDT_IRQ_SIZE_MAX   48
 
-#define IDT_TRAP_SYSCALL   64
+#include "idt_defs.h"
 
 #define IDT_DESCRIPTOR_X32_TASK       0x05
 #define IDT_DESCRIPTOR_X16_INTERRUPT  0x06

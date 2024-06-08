@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include "drivers/screen.h"
-#include "kernel/gdt.h"
-#include "kernel/pic.h"
-#include "kernel/proc.h"
+#include "gdt.h"
+#include "pic.h"
+#include "proc.h"
 #include "lib/debug.h"
 
-#include "kernel/idt.h"
+#include "idt.h"
 
 extern uint32_t isr_stub_table[];
 

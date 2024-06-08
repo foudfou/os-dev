@@ -1,8 +1,8 @@
 #include "drivers/screen.h"
-#include "kernel/spinlock.h"
+#include "spinlock.h"
 #include "lib/debug.h"
 
-#include "kernel/cpu.h"
+#include "cpu.h"
 
 struct cpu cpus[MAX_CPUS];
 int ncpu;

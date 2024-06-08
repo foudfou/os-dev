@@ -1,11 +1,11 @@
 // Mutual exclusion spin locks.
 
 #include "drivers/screen.h"
-#include "kernel/cpu.h"
-#include "kernel/paging.h"
-#include "kernel/proc.h"
+#include "cpu.h"
+#include "paging.h"
+#include "proc.h"
 
-#include "kernel/spinlock.h"
+#include "spinlock.h"
 
 
 

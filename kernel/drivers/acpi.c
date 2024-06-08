@@ -1,5 +1,5 @@
 #include "lib/debug.h"
-#include "kernel/paging.h"
+#include "paging.h"
 #include "lib/string.h"
 
 #include "drivers/acpi.h"

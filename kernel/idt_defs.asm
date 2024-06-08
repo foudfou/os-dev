@@ -1,0 +1,1 @@
+%define IDT_TRAP_SYSCALL  64
