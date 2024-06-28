@@ -63,6 +63,10 @@ os.img: boot/stage1.bin boot/stage2.bin kernel.bin $(ULIB)
 	bash -c '[ $$(stat -c %s kernel.bin) -lt $$(expr 512 \* $(KERNEL_SECTORS)) ]'
 	cat $^ /dev/zero | dd of=$@ bs=1k count=1440 iflag=fullblock
 
+fs.img: os.img
+	dd if=/dev/zero of=fs.img count=10000
+	dd if=os.img of=fs.img conv=notrunc
+
 # Linking ORDER MATTERS!
 OBJS := $K/kernel_entry.o $(OBJS) $K/isr.o $K/gdt_load.o $K/swtch.o
 
@@ -125,16 +129,17 @@ clean:
 
 
 .PHONY: run-bochs
-run-bochs: all
+run-bochs: all fs.img
 	bochs -q -f bochsrc
 
 QEMUOPTS = -fda os.img
 # As of qemu 6.2, `-smp cpus=2` is `-smp sockets=1,cores=2`, i.e. 1 cpu.
 # QEMUOPTS += -smp sockets=2,cores=2
+QEMUOPTS += -drive file=fs.img,index=1,media=disk,format=raw
 
 # Exit curses with Alt + 2
 .PHONY: run-qemu
-run-qemu: all
+run-qemu: all fs.img
 # -nographic disables graphic output
 	qemu-system-i386 $(QEMUOPTS) -display curses # -m 4G
 

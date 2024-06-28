@@ -19,8 +19,13 @@ We mostly follow the excellent
 modifications from other sources. In the end, the result much ressembles a
 Frankenstein OS.
 
+## Disclaimer
 
-Table of contents:
+Admittedly, writing this tutorial is somewhat of a nostalgic enterprise. It
+seeks to understand how computers were functioning in the end 1990's, beginning
+2000's.
+
+## Table of contents
 
 - [6.3 Handling Interrupts](doc/6.3.Handling_Interrupts.md)
 - [6.4.1 Keyboard Driver](doc/6.4.1.Keyboard_Driver.md)
@@ -38,6 +43,8 @@ Table of contents:
 - [8.3 Process Scheduling](doc/8.3.Process_Scheduling.md)
 - [8.4 User Mode Execution](doc/8.4.User_Mode_Execution.md)
 - [8.5 User System Calls](doc/8.5.User_System_Calls.md)
+- [9 Storage](doc/9.Storage.md)
+- [9.1 IDE Driver](doc/9.1.IDE_Driver.md)
 
 Note the original remaining chapters from WASOS were outlined as:
 
@@ -50,7 +57,7 @@ Note the original remaining chapters from WASOS were outlined as:
 - 7.2 Multi-processing
 - 8 Memory management
 
-Hux-kernel somewthat follows a different order inspired by the excellent
+Hux-kernel somewhat follows a different order inspired by the excellent
 [*Operating Systems: Three Easy
 Pieces*](http://pages.cs.wisc.edu/~remzi/OSTEP/) (OSTEP):
 

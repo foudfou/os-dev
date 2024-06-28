@@ -38,7 +38,8 @@
 #define IDT_IRQ_TIMER      0
 #define IDT_IRQ_KEYBOARD   1
 #define IDT_IRQ_COM1       4
-#define IDT_IRQ_IDE        14
+#define IDT_IRQ_IDE1       14
+#define IDT_IRQ_IDE2       15
 #define IDT_IRQ_ERROR      19
 #define IDT_IRQ_SIZE_MAX   48
 

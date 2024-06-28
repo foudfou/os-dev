@@ -16,7 +16,7 @@ void stack_trace();
 /** Assertion macro. */
 #define assert(condition)   do {                                        \
         if (!(condition)) {                                             \
-            cprintf("function '%s', file '%s': line %d",                \
+            cprintf("function '%s', file '%s': line %d\n",              \
                     __FUNCTION__, __FILE__, __LINE__);                  \
             panic("assertion failed");                                  \
         }                                                               \
@@ -25,7 +25,7 @@ void stack_trace();
 /** Error prompting macro. */
 #define error(fmt, args...) do {                                        \
         cprintf("ERROR: " fmt "\n", ##args);                            \
-        cprintf("function '%s', file '%s': line %d",                    \
+        cprintf("function '%s', file '%s': line %d\n",                  \
                 __FUNCTION__, __FILE__, __LINE__);                      \
         panic("error occurred");                                        \
     } while (0)

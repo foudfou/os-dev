@@ -1,4 +1,5 @@
 #include "drivers/acpi.h"
+#include "drivers/ide.h"
 #include "drivers/ioapic.h"
 #include "drivers/kbd.h"
 #include "drivers/screen.h"
@@ -60,6 +61,9 @@ void main(const struct pmem_info *mem_info) {
 
     initproc_init();
     print("Init process created\n");
+
+    ide_init();
+    print("IDE disk initialized\n");
 
     scheduler();
 
